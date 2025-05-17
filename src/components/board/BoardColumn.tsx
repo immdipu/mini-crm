@@ -106,6 +106,7 @@ interface BoardColumnProps {
   onLeadAdd: (status: Status) => void;
   moveCard: (dragIndex: number, hoverIndex: number, sourceColumn: Status, targetColumn: Status) => void;
   dropCard: (leadId: string, sourceColumn: Status, targetColumn: Status) => void;
+  onStatusChange?: (lead: Lead, newStatus: Status) => void;
 }
 
 export const BoardColumn = (({
@@ -117,7 +118,8 @@ export const BoardColumn = (({
   onLeadDelete,
   onLeadAdd,
   moveCard,
-  dropCard
+  dropCard,
+  onStatusChange
 }: BoardColumnProps) => {
   const leadsCount = useMemo(() => leadIds.length, [leadIds]);
 
@@ -185,6 +187,7 @@ export const BoardColumn = (({
               onEdit={onLeadEdit}
               onDelete={onLeadDelete}
               moveCard={moveCard}
+              onStatusChange={onStatusChange}
             />
           ))}
         </AnimatePresence>

@@ -56,6 +56,13 @@ export const Board = () => {
     setIsLeadFormOpen(true);
   };
 
+  const handleStatusChange = (lead: Lead, newStatus: Status) => {
+    if (lead.status !== newStatus) {
+      const updatedLead = { ...lead, status: newStatus };
+      editLead(updatedLead);
+    }
+  };
+
   const handleLeadFormSubmit = (formData: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'> | Lead) => {
     if ('id' in formData) {
       editLead(formData as Lead);
@@ -108,6 +115,7 @@ export const Board = () => {
                   onLeadAdd={handleAddLead}
                   moveCard={handleMoveCard}
                   dropCard={handleDropCard}
+                  onStatusChange={handleStatusChange}
                 />
               );
             })}

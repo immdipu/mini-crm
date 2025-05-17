@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { useLeadDrag, useLeadDrop } from '@/hooks/useLeadDragDrop';
 import { initializeTeamMembers } from '@/utils/storage';
 import { AtSign, Phone, Globe, Users, ChevronDown, Calendar } from 'lucide-react';
+import { QuickStatusChange } from './QuickStatusChange';
 
 interface LeadCardProps {
   lead: Lead;
@@ -15,9 +16,10 @@ interface LeadCardProps {
   onEdit: (lead: Lead) => void;
   onDelete: (id: string) => void;
   moveCard: (dragIndex: number, hoverIndex: number, sourceColumn: Status, targetColumn: Status) => void;
+  onStatusChange?: (lead: Lead, newStatus: Status) => void;
 }
 
-export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: LeadCardProps) => {
+export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard, onStatusChange }: LeadCardProps) => {
   const [showActions, setShowActions] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [teamMembers, setTeamMembers] = useState<Record<string, TeamMember>>({});
@@ -107,9 +109,9 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <Card className={`p-0  rounded-md border-none bg-white cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'} ${showDetails ? 'ring-1 ring-blue-100' : ''} relative overflow-hidden`}>
-       
-        <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+      <Card className={`p-0  rounded-md border-none bg-white cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'} ${showDetails ? 'ring-1 ring-blue-100' : ''} relative `}>
+
+        <div className={`absolute left-[0.2px] top-0 h-[98.6%] rounded-l-full bottom-0 w-1 ${
           lead.priority === 'high' ? 'bg-red-500' :
           lead.priority === 'medium' ? 'bg-orange-500' :
           'bg-green-500'
@@ -143,6 +145,13 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
                 }}
                 className="absolute top-0 right-0 flex gap-1 bg-white/90 backdrop-blur-sm rounded-full p-0.5 shadow-sm"
               >
+                {onStatusChange && (
+                  <QuickStatusChange
+                    lead={lead}
+                    onStatusChange={onStatusChange}
+                  />
+                )}
+
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
