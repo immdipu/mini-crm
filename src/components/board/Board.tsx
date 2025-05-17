@@ -9,12 +9,12 @@ import { Lead, Status } from '@/types';
 
 export const Board = () => {
   const { board, leads, isLoading, addLead, editLead, removeLead, reorderLeads, moveLead } = useBoard();
-  
+
   const [isLeadFormOpen, setIsLeadFormOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [leadBeingEdited, setLeadBeingEdited] = useState<Lead | undefined>(undefined);
   const [selectedStatus, setSelectedStatus] = useState<Status>('new');
-  
+
 
   const handleMoveCard = useCallback(
     (dragIndex: number, hoverIndex: number, sourceColumnId: Status, targetColumnId: Status) => {
@@ -27,20 +27,20 @@ export const Board = () => {
     },
     [board, reorderLeads, moveLead]
   );
-  
+
 
   const handleDropCard = useCallback(
     (leadId: string, sourceColumnId: Status, targetColumnId: Status) => {
       if (sourceColumnId !== targetColumnId) {
         const sourceIndex = board.columns[sourceColumnId].leadIds.indexOf(leadId);
         const targetIndex = board.columns[targetColumnId].leadIds.length;
-        
+
         moveLead(sourceColumnId, targetColumnId, sourceIndex, targetIndex, leadId);
       }
     },
     [board, moveLead]
   );
-  
+
 
   const handleAddLead = (status?: Status) => {
     if (status) {
@@ -49,13 +49,13 @@ export const Board = () => {
     setLeadBeingEdited(undefined);
     setIsLeadFormOpen(true);
   };
-  
+
 
   const handleEditLead = (lead: Lead) => {
     setLeadBeingEdited(lead);
     setIsLeadFormOpen(true);
   };
-  
+
   const handleLeadFormSubmit = (formData: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'> | Lead) => {
     if ('id' in formData) {
       editLead(formData as Lead);
@@ -66,11 +66,11 @@ export const Board = () => {
       });
     }
   };
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <motion.div 
+        <motion.div
           className="flex flex-col items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -85,18 +85,18 @@ export const Board = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-  
-      <motion.div 
-        className="flex-1 overflow-x-auto p-5 bg-[#f8f9fa] h-[calc(100vh-60px)]"
+
+      <motion.div
+        className="flex-1 overflow-x-auto p-5 bg-[#f8f9fa] h-[calc(100vh-60px)] scrollbar-thin"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <div className="flex gap-5 h-full min-h-[calc(100vh-150px)]">
+        <div className="flex gap-5 h-full min-h-[calc(100vh-150px)] pb-4">
           <AnimatePresence>
             {board.columnOrder.map((columnId) => {
               const column = board.columns[columnId];
-              
+
               return (
                 <BoardColumn
                   key={column.id}
