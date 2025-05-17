@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { FileImport } from '@/components/ui/FileImport';
@@ -20,7 +19,7 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
   const handleFileImport = (content: string, fileName: string) => {
     setSuccessMessage('');
     setErrorMessage('');
-    
+
     try {
       if (fileName.endsWith('.csv') && importType === 'csv') {
         importLeadsFromCSV(content);
@@ -50,7 +49,7 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
             Import leads from a CSV or JSON file. Make sure your file includes the required fields: name, company, and priority.
           </p>
-          
+
           <div className="flex flex-col space-y-4">
             <div className="flex flex-col">
               <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
@@ -71,7 +70,7 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
                     </Button>
                   </div>
                 </div>
-                
+
                 {importType !== 'none' && (
                   <div>
                     <h4 className="font-medium mb-2">Upload file:</h4>
@@ -79,18 +78,18 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
                       onImport={handleFileImport}
                       acceptedFormats={importType === 'csv' ? '.csv' : '.json'}
                     />
-                    
+
                     {importType === 'csv' && (
                       <div className="mt-3 text-xs text-gray-500">
                         <p>CSV format example:</p>
                         <pre className="bg-gray-200 dark:bg-gray-700 p-2 rounded mt-1 overflow-x-auto">
-                          name,company,priority,notes,status<br/>
-                          John Doe,Acme Inc,high,Follow up next week,new<br/>
+                          name,company,priority,notes,status<br />
+                          John Doe,Acme Inc,high,Follow up next week,new<br />
                           Jane Smith,XYZ Corp,medium,Interested in product demo,contacted
                         </pre>
                       </div>
                     )}
-                    
+
                     {importType === 'json' && (
                       <div className="mt-3 text-xs text-gray-500">
                         <p>JSON format example:</p>
@@ -116,13 +115,13 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
                     )}
                   </div>
                 )}
-                
+
                 {successMessage && (
                   <div className="mt-4 p-2 bg-green-100 text-green-800 rounded-md text-sm">
                     {successMessage}
                   </div>
                 )}
-                
+
                 {errorMessage && (
                   <div className="mt-4 p-2 bg-red-100 text-red-800 rounded-md text-sm">
                     {errorMessage}
@@ -132,7 +131,7 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
             </div>
           </div>
         </div>
-        
+
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={resetState}>
             Close

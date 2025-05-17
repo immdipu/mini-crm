@@ -1,5 +1,4 @@
 'use client';
-
 import { memo, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LeadCard } from '@/components/lead/LeadCard';
@@ -30,26 +29,20 @@ export const BoardColumn = memo(({
   moveCard,
   dropCard
 }: BoardColumnProps) => {
-  // Get column lead count
   const leadsCount = useMemo(() => leadIds.length, [leadIds]);
   
-  // Get the column's leads from the ids
   const columnLeads = useMemo(() => {
     return leadIds.map(leadId => leads[leadId]);
   }, [leadIds, leads]);
   
-  // Handle drop on column
   const handleDrop = (item: any) => {
     dropCard(item.id, item.columnId, id);
   };
-  
-  // Use column drop hook
-  const { isOver, canDrop, drop } = useColumnDrop(id, handleDrop);
-  
-  // Create a ref for the column
+
+  const { isOver, drop } = useColumnDrop(id, handleDrop);
+
   const columnRef = useRef<HTMLDivElement>(null);
   
-  // Make sure the ref is connected
   const connectDropRef = (node: HTMLDivElement | null) => {
     drop(node);
     columnRef.current = node;
