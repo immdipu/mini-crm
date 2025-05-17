@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/Badge';
 import { Lead, Priority, Status } from '@/types';
 
@@ -15,6 +15,7 @@ interface LeadCardProps {
 
 export const LeadCard = ({ lead, onEdit, onDelete, onDragStart, onDragEnd }: LeadCardProps) => {
   const [isDragging, setIsDragging] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   
   const priorityColors = {
     high: 'border-destructive',
@@ -34,17 +35,31 @@ export const LeadCard = ({ lead, onEdit, onDelete, onDragStart, onDragEnd }: Lea
     low: 'Low',
   };
   
+  useEffect(() => {
+    // Add data attribute for easier targeting
+    if (cardRef.current) {
+      cardRef.current.setAttribute('data-lead-id', lead.id);
+    }
+  }, [lead.id]);
+  
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    if (onDragStart) {
+    if (onDragStart && cardRef.current) {
       e.dataTransfer.setData('text/plain', lead.id);
+      e.dataTransfer.setData('application/json', JSON.stringify({
+        id: lead.id,
+        status: lead.status
+      }));
       e.dataTransfer.effectAllowed = 'move';
       
       // Create a ghost image that's a bit smaller for better UX
-      const element = e.currentTarget;
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        e.dataTransfer.setDragImage(element, rect.width / 2, 20);
-      }
+      const rect = cardRef.current.getBoundingClientRect();
+      e.dataTransfer.setDragImage(cardRef.current, rect.width / 2, 20);
+      
+      // Add a dragging class to the body to enable drag-specific styles
+      document.body.classList.add('is-dragging');
+      
+      // Add a class to the element being dragged
+      cardRef.current.classList.add('is-being-dragged');
       
       setIsDragging(true);
       onDragStart(e, lead.id, lead.status);
@@ -54,6 +69,27 @@ export const LeadCard = ({ lead, onEdit, onDelete, onDragStart, onDragEnd }: Lea
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
     if (onDragEnd) {
       setIsDragging(false);
+      
+      // Remove the dragging classes
+      document.body.classList.remove('is-dragging');
+      
+      // Clean up any lingering classes on the card
+      if (cardRef.current) {
+        cardRef.current.classList.remove('is-being-dragged');
+        // Force a style recalculation
+        void cardRef.current.offsetWidth;
+      }
+      
+      // Clean up any persistent UI states
+      const columns = document.querySelectorAll('.board-column');
+      columns.forEach(column => column.classList.remove('drag-over'));
+      
+      // Clear highlight indicators
+      const indicators = document.querySelectorAll('.drop-indicator');
+      indicators.forEach((indicator) => {
+        (indicator as HTMLElement).style.opacity = '0';
+      });
+      
       onDragEnd(e);
     }
   };
@@ -66,68 +102,72 @@ export const LeadCard = ({ lead, onEdit, onDelete, onDragStart, onDragEnd }: Lea
   };
 
   return (
-    <motion.div
+    <div
+      ref={cardRef}
       draggable="true"
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      layout
-      layoutId={lead.id}
-      transition={{ 
-        type: "spring", 
-        stiffness: 500, 
-        damping: 30,
-        mass: 1 
-      }}
       className={`bg-white rounded-md shadow-sm p-3 cursor-grab border border-l-2 ${
         priorityColors[lead.priority]
-      } ${isDragging ? 'opacity-50 shadow-md' : 'opacity-100'} transition-all duration-200`}
+      } ${isDragging ? 'opacity-50 shadow-md' : 'opacity-100'} transition-all duration-200 relative`}
+      data-lead-id={lead.id}
     >
-      <div className="flex justify-between items-start mb-1.5">
-        <h3 className="font-medium text-sm text-gray-900 truncate">{lead.name}</h3>
-        <div className="flex gap-1">
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(lead);
-            }}
-            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full transition-colors"
-            aria-label="Edit lead"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-          </motion.button>
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(lead.id);
-            }}
-            className="p-1 text-gray-400 hover:text-destructive hover:bg-red-50 rounded-full transition-colors"
-            aria-label="Delete lead"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </motion.button>
+      <motion.div
+        layoutId={lead.id}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 500, 
+          damping: 30,
+          mass: 1 
+        }}
+      >
+        <div className="flex justify-between items-start mb-1.5">
+          <h3 className="font-medium text-sm text-gray-900 truncate">{lead.name}</h3>
+          <div className="flex gap-1">
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(lead);
+              }}
+              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full transition-colors"
+              aria-label="Edit lead"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </motion.button>
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(lead.id);
+              }}
+              className="p-1 text-gray-400 hover:text-destructive hover:bg-red-50 rounded-full transition-colors"
+              aria-label="Delete lead"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </motion.button>
+          </div>
         </div>
-      </div>
-      <p className="text-xs text-gray-500 mb-1.5 truncate">{lead.company}</p>
-      {lead.notes && (
-        <p className="text-xs text-gray-400 line-clamp-2 mb-2 leading-relaxed">{lead.notes}</p>
-      )}
-      <div className="flex justify-between items-center text-xs">
-        <Badge variant={priorityVariants[lead.priority]} size="sm">
-          {priorityLabels[lead.priority]}
-        </Badge>
-        <span className="text-gray-400">{formatDate(lead.updatedAt)}</span>
-      </div>
-    </motion.div>
+        <p className="text-xs text-gray-500 mb-1.5 truncate">{lead.company}</p>
+        {lead.notes && (
+          <p className="text-xs text-gray-400 line-clamp-2 mb-2 leading-relaxed">{lead.notes}</p>
+        )}
+        <div className="flex justify-between items-center text-xs">
+          <Badge variant={priorityVariants[lead.priority]} size="sm">
+            {priorityLabels[lead.priority]}
+          </Badge>
+          <span className="text-gray-400">{formatDate(lead.updatedAt)}</span>
+        </div>
+      </motion.div>
+    </div>
   );
 };

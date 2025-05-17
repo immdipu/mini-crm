@@ -54,10 +54,11 @@ export const BoardColumn = ({
     <motion.div 
       className={`flex flex-col bg-white rounded-md shadow-sm h-full w-[270px] min-w-[270px] border board-column ${
         isHovered ? 'border-primary border-2' : 'border-gray-200'
-      } overflow-hidden transition-colors duration-200`}
+      } overflow-hidden transition-all duration-100`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
+      data-column-id={id}
     >
       {/* Column header */}
       <div className="px-3 py-2.5 font-medium border-b border-gray-200 rounded-t-md flex justify-between items-center sticky top-0 bg-white z-10">
@@ -92,14 +93,13 @@ export const BoardColumn = ({
         data-column-id={id}
       >
         <AnimatePresence mode="popLayout">
-          {/* Only show top drop indicator if there's more than one card */}
-          {leadIds.length > 1 && (
-            <div 
-              className="drop-indicator my-0.5 h-0.5 w-full bg-primary opacity-0 transition-opacity duration-200"
-              data-column={id}
-              data-before="-1"
-            />
-          )}
+          {/* Drop indicator at the top of the column - always show for consistent behavior */}
+          <div 
+            className="drop-indicator my-1 h-1 w-full bg-primary opacity-0 transition-opacity duration-200"
+            data-column={id}
+            data-position="0"
+            data-before={leadIds[0] || "-1"}
+          />
           
           {leadIds.length === 0 ? (
             <motion.div 
@@ -124,19 +124,20 @@ export const BoardColumn = ({
             </motion.div>
           ) : (
             <motion.div 
-              className="space-y-2.5"
+              className="space-y-0"
               layout
             >
               {leadsList.map((lead, index) => (
                 <motion.div key={lead.id} layout>
-                  {/* Only show drop indicators between cards if there are multiple cards */}
-                  {leadIds.length > 1 && index > 0 && (
-                    <div 
-                      className="drop-indicator my-0.5 h-0.5 w-full bg-primary opacity-0 transition-opacity duration-200"
-                      data-column={id}
-                      data-before={lead.id}
-                    />
-                  )}
+                  {/* Improved drop target area above each card */}
+                  <div 
+                    className="drop-indicator-area py-1 group cursor-pointer"
+                    data-column={id}
+                    data-position={index}
+                    data-before={lead.id}
+                  >
+                    <div className="drop-indicator h-1 w-full bg-primary opacity-0 group-hover:opacity-30 transition-opacity duration-200" />
+                  </div>
                   
                   <LeadCard
                     lead={lead}
@@ -148,14 +149,15 @@ export const BoardColumn = ({
                 </motion.div>
               ))}
               
-              {/* Only show bottom drop indicator if there's more than one card */}
-              {leadIds.length > 1 && (
-                <div 
-                  className="drop-indicator my-0.5 h-0.5 w-full bg-primary opacity-0 transition-opacity duration-200"
-                  data-column={id}
-                  data-before="-1"
-                />
-              )}
+              {/* Drop target area at the bottom of the column */}
+              <div 
+                className="drop-indicator-area py-2 mt-1 group cursor-pointer"
+                data-column={id}
+                data-position={leadIds.length}
+                data-before="-1"
+              >
+                <div className="drop-indicator h-1 w-full bg-primary opacity-0 group-hover:opacity-30 transition-opacity duration-200" />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

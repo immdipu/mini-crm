@@ -173,6 +173,7 @@
 .board-column {
   min-height: calc(100vh - 120px);
   height: 100%;
+  transition: border-color 0.1s ease-out, background-color 0.1s ease-out;
 }
 
 .drop-indicator {
@@ -181,15 +182,46 @@
   background-color: #3b82f6;
   border-radius: 3px;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.1s ease-out;
 }
 
 .drop-indicator.active {
   opacity: 1;
 }
 
+.drop-indicator-area {
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 5;
+}
+
+.drop-indicator-area:hover .drop-indicator {
+  opacity: 0.3;
+}
+
 /* When drag is happening */
-.is-dragging-over {
-  background-color: rgba(229, 246, 253, 0.5);
-  border: 2px dashed #3b82f6;
+body.is-dragging .board-column {
+  border-color: #e5e7eb;
+}
+
+body.is-dragging .board-column.drag-over {
+  background-color: rgba(219, 234, 254, 0.2);
+  border-color: #3b82f6;
+  border-width: 2px;
+  border-style: solid;
+  transition: all 0.1s ease-out;
+}
+
+.board-column:not(.drag-over) {
+  border-color: #e5e7eb;
+  border-width: 1px;
+  background-color: white;
+  transition: all 0.1s ease-out;
+}
+
+.is-being-dragged {
+  opacity: 0.5 !important;
+  transform: scale(1.02);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 50;
 }

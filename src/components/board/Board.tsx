@@ -27,12 +27,36 @@ export const Board = () => {
   // Track drop indicators
   const dropIndicatorRef = useRef<HTMLElement | null>(null);
   
-  // Clear all drop indicators
-  const clearDropIndicators = () => {
+  // Clear all drop indicators and column highlights
+  const clearDropEffects = () => {
+    // Clear drop indicators
     const indicators = document.querySelectorAll('.drop-indicator');
     indicators.forEach((indicator) => {
       (indicator as HTMLElement).style.opacity = '0';
     });
+    
+    // Clear column highlights - force immediate class removal
+    const columns = document.querySelectorAll('.board-column');
+    columns.forEach(column => {
+      column.classList.remove('drag-over');
+      // Force a style recalculation for immediate visual update
+      void column.offsetWidth;
+    });
+    
+    // Remove the dragging class from body
+    document.body.classList.remove('is-dragging');
+    
+    // Remove any lingering is-being-dragged classes
+    const draggedItems = document.querySelectorAll('.is-being-dragged');
+    draggedItems.forEach(item => {
+      item.classList.remove('is-being-dragged');
+    });
+    
+    // Reset hover column state
+    setHoverColumn(null);
+    
+    // Reset the drop indicator reference
+    dropIndicatorRef.current = null;
   };
   
   // Handle drag start
@@ -62,60 +86,84 @@ export const Board = () => {
     // Update hover column
     setHoverColumn(columnId);
     
+    // Add highlight class to the current column
+    const columns = document.querySelectorAll('.board-column');
+    columns.forEach(column => {
+      if ((column as HTMLElement).dataset.columnId === columnId) {
+        column.classList.add('drag-over');
+      } else {
+        column.classList.remove('drag-over');
+      }
+    });
+    
     // Get the column's lead count
     const leadCount = board.columns[columnId].leadIds.length;
     
     // If the column is empty or has only one card, we don't need to show indicators
     if (leadCount <= 1) {
-      clearDropIndicators();
+      // Just clear indicators, not column highlights
+      const indicators = document.querySelectorAll('.drop-indicator');
+      indicators.forEach((indicator) => {
+        (indicator as HTMLElement).style.opacity = '0';
+      });
       return;
     }
     
-    // Find the nearest indicator
-    const indicators = Array.from(
-      document.querySelectorAll(`[data-column="${columnId}"]`) as NodeListOf<HTMLElement>
+    // Find all drop indicator areas in this column
+    const indicatorAreas = Array.from(
+      document.querySelectorAll(`.drop-indicator-area[data-column="${columnId}"]`) as NodeListOf<HTMLElement>
     );
     
-    if (indicators.length === 0) return;
+    if (indicatorAreas.length === 0) return;
     
-    // Clear all indicators first
-    clearDropIndicators();
+    // Clear all indicators first (but not column highlights)
+    const indicators = document.querySelectorAll('.drop-indicator');
+    indicators.forEach((indicator) => {
+      (indicator as HTMLElement).style.opacity = '0';
+    });
     
-    // Calculate which indicator is closest
-    const closestIndicator = findNearestIndicator(e, indicators);
+    // Find the nearest indicator area
+    const closestArea = findNearestIndicator(e, indicatorAreas);
     
-    if (closestIndicator) {
-      closestIndicator.style.opacity = '1';
-      dropIndicatorRef.current = closestIndicator;
+    if (closestArea) {
+      // Find the drop indicator inside this area and highlight it
+      const indicator = closestArea.querySelector('.drop-indicator') as HTMLElement;
+      if (indicator) {
+        indicator.style.opacity = '1';
+        dropIndicatorRef.current = indicator.parentElement as HTMLElement;
+      }
     }
   };
   
   // Find the nearest drop indicator to the current drag position
   const findNearestIndicator = (e: React.DragEvent<Element>, indicators: HTMLElement[]) => {
-    // If there are no indicators or only one card in the column, return null
+    // If there are no indicators, return null
     if (indicators.length === 0) return null;
     
-    const DISTANCE_OFFSET = 50;
+    // Sort indicators by their vertical position
+    const sortedIndicators = [...indicators].sort((a, b) => {
+      const rectA = a.getBoundingClientRect();
+      const rectB = b.getBoundingClientRect();
+      return rectA.top - rectB.top;
+    });
     
-    // Calculate position relative to each indicator
-    const closest = indicators.reduce(
-      (closest, element) => {
-        const box = element.getBoundingClientRect();
-        const offset = e.clientY - (box.top + DISTANCE_OFFSET);
-        
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element };
-        } else {
-          return closest;
-        }
-      },
-      {
-        offset: Number.NEGATIVE_INFINITY,
-        element: indicators[indicators.length - 1],
+    // Find the indicator closest to the mouse position
+    const mouseY = e.clientY;
+    
+    // Find the first indicator that is below the mouse
+    for (let i = 0; i < sortedIndicators.length; i++) {
+      const indicator = sortedIndicators[i];
+      const rect = indicator.getBoundingClientRect();
+      
+      // Check if this indicator is below the mouse
+      // We add a buffer zone to make it easier to target
+      if (rect.top + 10 > mouseY) {
+        return indicator;
       }
-    );
+    }
     
-    return closest.element;
+    // If no indicator is below the mouse, return the last one
+    return sortedIndicators[sortedIndicators.length - 1];
   };
   
   // Handle drag leave
@@ -125,8 +173,13 @@ export const Board = () => {
     // Only clear indicators if we're leaving to an area outside a column
     const relatedTarget = e.relatedTarget as HTMLElement;
     if (!relatedTarget || !relatedTarget.closest('.board-column')) {
-      clearDropIndicators();
-      setHoverColumn(null);
+      clearDropEffects();
+      
+      // Force a repaint to ensure visual effects are cleared
+      requestAnimationFrame(() => {
+        const columns = document.querySelectorAll('.board-column');
+        columns.forEach(column => column.classList.remove('drag-over'));
+      });
     }
   };
   
@@ -135,20 +188,42 @@ export const Board = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Clean up states
-    setTimeout(() => {
-      setActiveId(null);
-      setActiveLead(null);
-      setActiveColumn(null);
-      setHoverColumn(null);
-      clearDropIndicators();
-    }, 50);
+    // Clean up states immediately
+    clearDropEffects();
+    
+    // Force a DOM repaint to ensure all visual elements are reset
+    requestAnimationFrame(() => {
+      // Double-check that all visual effects are cleared
+      const columns = document.querySelectorAll('.board-column');
+      columns.forEach(column => column.classList.remove('drag-over'));
+      
+      const indicators = document.querySelectorAll('.drop-indicator');
+      indicators.forEach((indicator) => {
+        (indicator as HTMLElement).style.opacity = '0';
+      });
+    });
+    
+    setActiveId(null);
+    setActiveLead(null);
+    setActiveColumn(null);
   };
   
   // Handle drop on column
   const handleDrop = (e: React.DragEvent<Element>, columnId: Status) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // First clean up all visual effects
+    clearDropEffects();
+    
+    // Force immediate repaint of the UI state
+    requestAnimationFrame(() => {
+      document.body.classList.remove('is-dragging');
+      
+      // Additional cleanup for any persistent column highlights
+      const columns = document.querySelectorAll('.board-column');
+      columns.forEach(column => column.classList.remove('drag-over'));
+    });
     
     if (!activeId || !activeColumn) return;
     
@@ -164,7 +239,7 @@ export const Board = () => {
     // Get the column's lead count
     const leadCount = board.columns[columnId].leadIds.length;
     
-    // If the target column is empty, simply append the card
+    // If the column is empty, simply append the card
     if (leadCount === 0) {
       if (sourceColumnId !== columnId) {
         moveLead(
@@ -178,8 +253,8 @@ export const Board = () => {
       return;
     }
     
-    // If there's only one card in the target column or no drop indicator is active
-    if (leadCount === 1 || !dropIndicatorRef.current) {
+    // If no drop indicator is active or detected
+    if (!dropIndicatorRef.current) {
       // Move to the end of the column
       if (sourceColumnId !== columnId) {
         moveLead(
@@ -194,43 +269,33 @@ export const Board = () => {
     }
     
     // Get the target position from the indicator
-    const beforeId = dropIndicatorRef.current.dataset.before || "-1";
+    const position = parseInt(dropIndicatorRef.current.dataset.position || "0", 10);
     
-    // If dropping at the end of the column
-    if (beforeId === "-1") {
-      if (sourceColumnId !== columnId) {
-        // Move between columns to the end
-        moveLead(
-          sourceColumnId,
-          columnId,
-          sourceIndex,
-          board.columns[columnId].leadIds.length,
-          leadId
-        );
-      }
-      return;
-    }
-    
-    // Find the index of the target lead
-    const targetIndex = board.columns[columnId].leadIds.indexOf(beforeId);
-    
-    if (targetIndex === -1) return;
-    
+    // Handle drops within the same column
     if (sourceColumnId === columnId) {
-      // Reordering within the same column
-      if (sourceIndex !== targetIndex) {
-        reorderLeads(columnId, sourceIndex, targetIndex);
+      // Don't reorder if dropping at the same position or right after the source
+      if (position !== sourceIndex && position !== sourceIndex + 1) {
+        // Adjust for when dropping below the source
+        const adjustedDestIndex = position > sourceIndex ? position - 1 : position;
+        reorderLeads(columnId, sourceIndex, adjustedDestIndex);
       }
     } else {
-      // Moving between columns
+      // Moving between columns - use the position directly
       moveLead(
         sourceColumnId,
         columnId,
         sourceIndex,
-        targetIndex,
+        position,
         leadId
       );
     }
+    
+    // Final cleanup of state
+    setActiveId(null);
+    setActiveLead(null);
+    setActiveColumn(null);
+    setHoverColumn(null);
+    dropIndicatorRef.current = null;
   };
   
   // Handle adding a new lead
