@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Board, Column, Lead, Status, ImportedLead } from '@/types';
+import { Board, Column, Lead, Status, ImportedLead, Priority } from '@/types';
 
 const STORAGE_KEY = 'mini-crm-data';
 
@@ -57,7 +57,6 @@ export const saveToStorage = (board: Board, leads: Record<string, Lead>): void =
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ board, leads }));
 };
 
-// Create a new lead
 export const createLead = (
   lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>,
   currentBoard: Board,
@@ -98,7 +97,6 @@ export const createLead = (
   return { board: updatedBoard, leads: updatedLeads, newLead };
 };
 
-// Update an existing lead
 export const updateLead = (
   updatedLead: Lead,
   currentBoard: Board,
@@ -153,7 +151,8 @@ export const deleteLead = (
   currentLeads: Record<string, Lead>
 ): { board: Board; leads: Record<string, Lead> } => {
   const lead = currentLeads[leadId];
-  const { [leadId]: removedLead, ...remainingLeads } = currentLeads;
+  // Delete the lead from the record using object destructuring
+  const { [leadId]: omitted, ...remainingLeads } = currentLeads; // eslint-disable-line @typescript-eslint/no-unused-vars
   const updatedColumns = {
     ...currentBoard.columns,
     [lead.status]: {
@@ -307,9 +306,9 @@ export const parseCSV = (csv: string): ImportedLead[] => {
     headers.forEach((header, index) => {
       if (header === 'name') lead.name = values[index];
       if (header === 'company') lead.company = values[index];
-      if (header === 'priority') lead.priority = values[index] as any;
+      if (header === 'priority') lead.priority = values[index] as Priority;
       if (header === 'notes') lead.notes = values[index];
-      if (header === 'status') lead.status = values[index] as any;
+      if (header === 'status') lead.status = values[index] as Status;
     });
     
     return lead as ImportedLead;

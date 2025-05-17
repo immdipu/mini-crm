@@ -34,18 +34,34 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
   };
   
   // Format date
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
+  const formatDate = (timestamp: number | undefined) => {
+    try {
+      // Validate timestamp is a valid number and not NaN
+      if (typeof timestamp !== 'number' || isNaN(timestamp)) {
+        return 'No date';
+      }
+      
+      const date = new Date(timestamp);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }).format(date);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Date error';
+    }
   };
   
   // Use React DnD hooks
   const { isDragging, drag } = useLeadDrag(lead, index, columnId);
-  const { isOver, canDrop, drop } = useLeadDrop(columnId, index, moveCard);
+  const { drop } = useLeadDrop(columnId, index, moveCard);
   
   // Create refs for drag and drop
   const cardRef = useRef<HTMLDivElement>(null);
@@ -110,7 +126,7 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
         
         <div className="flex items-center justify-between">
           <div className="text-xs text-gray-400">
-            {formatDate(lead.createdAt)}
+            {lead.createdAt ? formatDate(lead.createdAt) : 'No date'}
           </div>
           
           <motion.div 

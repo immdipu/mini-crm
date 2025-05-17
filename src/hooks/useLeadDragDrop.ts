@@ -1,15 +1,14 @@
 'use client';
 
 import { useRef } from 'react';
-import { useDrag, useDrop } from 'react-dnd';
+import { useDrag, useDrop } from 'react-dnd/dist/hooks';
+import type { DropTargetMonitor, DragSourceMonitor } from 'react-dnd/dist/types/monitors';
 import { Lead, Status } from '@/types';
 
-// Item types for drag and drop
 export const ItemTypes = {
   LEAD: 'lead',
 };
 
-// Interface for draggable lead item
 export interface DragItem {
   id: string;
   index: number;
@@ -17,14 +16,13 @@ export interface DragItem {
   type: string;
 }
 
-// Hook for making a card draggable
 export function useLeadDrag(lead: Lead, index: number, columnId: Status) {
   const [{ isDragging }, drag] = useDrag({
     type: ItemTypes.LEAD,
     item: () => {
       return { id: lead.id, index, columnId, type: ItemTypes.LEAD };
     },
-    collect: (monitor) => ({
+    collect: (monitor: DragSourceMonitor<DragItem>) => ({
       isDragging: monitor.isDragging(),
     }),
   });
@@ -32,7 +30,6 @@ export function useLeadDrag(lead: Lead, index: number, columnId: Status) {
   return { isDragging, drag };
 }
 
-// Hook for handling dropping of leads
 export function useLeadDrop(
   columnId: Status,
   index: number,
@@ -42,11 +39,11 @@ export function useLeadDrop(
 
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: ItemTypes.LEAD,
-    collect: (monitor) => ({
+    collect: (monitor: DropTargetMonitor<DragItem>) => ({
       isOver: monitor.isOver(),
       canDrop: monitor.canDrop(),
     }),
-    hover(item: DragItem, monitor) {
+    hover(item: DragItem, monitor: DropTargetMonitor<DragItem>) {
       if (!ref.current) {
         return;
       }
@@ -56,29 +53,21 @@ export function useLeadDrop(
       const sourceColumn = item.columnId;
       const targetColumn = columnId;
       
-      // Don't replace items with themselves
       if (dragIndex === hoverIndex && sourceColumn === targetColumn) {
         return;
       }
       
-      // Determine rectangle on screen
       const hoverBoundingRect = ref.current.getBoundingClientRect();
       
-      // Get vertical middle
       const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
       
-      // Determine mouse position
       const clientOffset = monitor.getClientOffset();
       
-      // Get pixels to the top
       const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
-      
-      // Dragging from top to bottom - move only when cursor crosses half of the item's height
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+       if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
         return;
       }
-      
-      // Dragging from bottom to top - move only when cursor crosses half of the item's height
+
       if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
         return;
       }
@@ -111,7 +100,7 @@ export function useColumnDrop(
       onDrop(item, columnId);
       return { columnId };
     },
-    collect: (monitor) => ({
+    collect: (monitor: DropTargetMonitor<DragItem>) => ({
       isOver: monitor.isOver(),
       canDrop: monitor.canDrop(),
     }),

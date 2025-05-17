@@ -1,13 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
-import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import { Lead, Priority, Status } from '@/types';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/Select';
+import { Lead } from '@/types';
 
 interface LeadFormProps {
   isOpen: boolean;
@@ -46,7 +51,14 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     
-    // Clear the error for this field if it exists
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+  
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -86,57 +98,88 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={initialData ? 'Edit Lead' : 'Add New Lead'}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Name"
-          name="name"
-          value={formData.name || ''}
-          onChange={handleChange}
-          error={errors.name}
-          fullWidth
-          placeholder="Contact name"
-          required
-        />
-        
-        <Input
-          label="Company"
-          name="company"
-          value={formData.company || ''}
-          onChange={handleChange}
-          error={errors.company}
-          fullWidth
-          placeholder="Company name"
-          required
-        />
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select
-            label="Priority"
-            name="priority"
-            value={formData.priority as string}
+        <div className="space-y-1">
+          <label htmlFor="name" className="text-sm font-medium mb-1 block">Name</label>
+          <Input
+            id="name"
+            name="name"
+            value={formData.name || ''}
             onChange={handleChange}
-            options={priorityOptions}
-            fullWidth
+            className={errors.name ? 'border-red-500' : ''}
+            placeholder="Contact name"
+            required
           />
-          
-          <Select
-            label="Status"
-            name="status"
-            value={formData.status as string}
-            onChange={handleChange}
-            options={statusOptions}
-            fullWidth
-          />
+          {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
         </div>
         
-        <Textarea
-          label="Notes"
-          name="notes"
-          value={formData.notes || ''}
-          onChange={handleChange}
-          rows={3}
-          fullWidth
-          placeholder="Additional notes about this lead..."
-        />
+        <div className="space-y-1">
+          <label htmlFor="company" className="text-sm font-medium mb-1 block">Company</label>
+          <Input
+            id="company"
+            name="company"
+            value={formData.company || ''}
+            onChange={handleChange}
+            className={errors.company ? 'border-red-500' : ''}
+            placeholder="Company name"
+            required
+          />
+          {errors.company && <p className="text-red-500 text-xs mt-1">{errors.company}</p>}
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-sm font-medium mb-1 block">Priority</label>
+            <Select
+              name="priority"
+              value={formData.priority as string}
+              onValueChange={(value) => handleSelectChange('priority', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select priority" />
+              </SelectTrigger>
+              <SelectContent>
+                {priorityOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-1">
+            <label className="text-sm font-medium mb-1 block">Status</label>
+            <Select
+              name="status"
+              value={formData.status as string}
+              onValueChange={(value) => handleSelectChange('status', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="space-y-1">
+          <label htmlFor="notes" className="text-sm font-medium mb-1 block">Notes</label>
+          <Textarea
+            id="notes"
+            name="notes"
+            value={formData.notes || ''}
+            onChange={handleChange}
+            rows={3}
+            className="w-full"
+            placeholder="Additional notes about this lead..."
+          />
+        </div>
         
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={onClose}>

@@ -35,7 +35,7 @@ export const FileImport = ({
       try {
         const content = event.target?.result as string;
         onImport(content, file.name);
-      } catch (err) {
+      } catch {
         setError('Failed to read file. Please try a different file.');
       }
     };

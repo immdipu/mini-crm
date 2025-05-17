@@ -30,7 +30,7 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
       } else {
         setErrorMessage('File format does not match the selected import type.');
       }
-    } catch (error) {
+    } catch {
       setErrorMessage('Failed to import file. Please check the file format and try again.');
     }
   };

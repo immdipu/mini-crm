@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Board, Lead, Status, Priority, ImportedLead } from '@/types';
+import { Board, Lead, Status } from '@/types';
 import { 
   initializeStorage, 
   createLead, 

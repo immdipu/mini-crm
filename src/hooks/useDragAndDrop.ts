@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Status, Lead } from '@/types';
+import { Status } from '@/types';
 
 interface DragItem {
   id: string;

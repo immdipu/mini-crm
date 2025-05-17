@@ -1,10 +1,10 @@
 'use client';
-import { memo, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LeadCard } from '@/components/lead/LeadCard';
 import { Button } from '@/components/ui/Button';
 import { Lead, Status } from '@/types';
-import { useColumnDrop } from '@/hooks/useLeadDragDrop';
+import { useColumnDrop, DragItem } from '@/hooks/useLeadDragDrop';
 
 interface BoardColumnProps {
   id: Status;
@@ -18,7 +18,7 @@ interface BoardColumnProps {
   dropCard: (leadId: string, sourceColumn: Status, targetColumn: Status) => void;
 }
 
-export const BoardColumn = memo(({
+export const BoardColumn = (({
   id,
   title,
   leadIds,
@@ -32,10 +32,12 @@ export const BoardColumn = memo(({
   const leadsCount = useMemo(() => leadIds.length, [leadIds]);
   
   const columnLeads = useMemo(() => {
-    return leadIds.map(leadId => leads[leadId]);
+    return leadIds
+      .map(leadId => leads[leadId])
+      .filter(lead => lead !== undefined); // Filter out undefined leads
   }, [leadIds, leads]);
   
-  const handleDrop = (item: any) => {
+  const handleDrop = (item: DragItem) => {
     dropCard(item.id, item.columnId, id);
   };
 

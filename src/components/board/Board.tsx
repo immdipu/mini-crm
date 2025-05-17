@@ -20,11 +20,8 @@ export const Board = () => {
   const handleMoveCard = useCallback(
     (dragIndex: number, hoverIndex: number, sourceColumnId: Status, targetColumnId: Status) => {
       if (sourceColumnId === targetColumnId) {
-        // Moving within same column
         reorderLeads(sourceColumnId, dragIndex, hoverIndex);
       } else {
-        // Moving between columns
-        // Find the leadId being moved
         const leadId = board.columns[sourceColumnId].leadIds[dragIndex];
         moveLead(sourceColumnId, targetColumnId, dragIndex, hoverIndex, leadId);
       }
@@ -35,10 +32,9 @@ export const Board = () => {
 
   const handleDropCard = useCallback(
     (leadId: string, sourceColumnId: Status, targetColumnId: Status) => {
-      // Only handle the case when the source and target columns are different
       if (sourceColumnId !== targetColumnId) {
         const sourceIndex = board.columns[sourceColumnId].leadIds.indexOf(leadId);
-        const targetIndex = board.columns[targetColumnId].leadIds.length; // Drop at the end
+        const targetIndex = board.columns[targetColumnId].leadIds.length;
         
         moveLead(sourceColumnId, targetColumnId, sourceIndex, targetIndex, leadId);
       }
