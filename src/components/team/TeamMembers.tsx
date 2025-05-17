@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { TeamMemberForm } from './TeamMemberForm';
 import { TeamMember } from '@/types';
@@ -11,7 +12,7 @@ import {
   deleteTeamMember,
   initializeTeamMembers
 } from '@/utils/storage';
-import { User, Trash2, Edit, Plus, UserPlus } from 'lucide-react';
+import { User, Trash2, Edit, UserPlus } from 'lucide-react';
 
 export const TeamMembers = () => {
   const [teamMembers, setTeamMembers] = useState<Record<string, TeamMember>>({});
@@ -97,7 +98,7 @@ export const TeamMembers = () => {
             animate={{ opacity: 1 }}
             className="bg-gray-50 rounded-md p-6 text-center text-gray-500 text-xs"
           >
-            No team members yet. Click 'Add Member' to create your first team member.
+            No team members yet. Click &apos;Add Member&apos; to create your first team member.
           </motion.div>
         ) : (
           <div className="grid gap-2 md:grid-cols-2">
@@ -112,12 +113,16 @@ export const TeamMembers = () => {
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden text-gray-500">
                     {member.avatarUrl ? (
-                      <img 
+                      <Image 
                         src={member.avatarUrl} 
                         alt={member.name} 
+                        width={32} 
+                        height={32}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
+                          // Fallback to a user icon if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
                         }}
                       />
                     ) : (
