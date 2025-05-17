@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Board, Column, Lead, Status, ImportedLead, Priority } from '@/types';
+import { Board, Column, Lead, Status, ImportedLead, Priority, TeamMember, LeadSource } from '@/types';
 
 const STORAGE_KEY = 'mini-crm-data';
+const TEAM_MEMBERS_KEY = 'mini-crm-team-members';
 
 const initialColumns: Record<Status, Column> = {
   new: {
@@ -315,9 +316,13 @@ export const parseCSV = (csv: string): ImportedLead[] => {
     headers.forEach((header, index) => {
       if (header === 'name') lead.name = values[index];
       if (header === 'company') lead.company = values[index];
+      if (header === 'email') lead.email = values[index];
+      if (header === 'phone') lead.phone = values[index];
       if (header === 'priority') lead.priority = values[index] as Priority;
       if (header === 'notes') lead.notes = values[index];
       if (header === 'status') lead.status = values[index] as Status;
+      if (header === 'leadSource') lead.leadSource = values[index] as LeadSource;
+      if (header === 'assignedTo') lead.assignedTo = values[index];
     });
     
     return lead as ImportedLead;
@@ -332,4 +337,86 @@ export const parseJSON = (json: string): ImportedLead[] => {
     console.error('Error parsing JSON:', error);
     return [];
   }
+};
+
+// Team member functions
+export const initializeTeamMembers = (): Record<string, TeamMember> => {
+  if (typeof window === 'undefined') {
+    return {};
+  }
+
+  const storedData = localStorage.getItem(TEAM_MEMBERS_KEY);
+  
+  if (!storedData) {
+    localStorage.setItem(TEAM_MEMBERS_KEY, JSON.stringify({}));
+    return {};
+  }
+
+  return JSON.parse(storedData);
+};
+
+export const saveTeamMembers = (teamMembers: Record<string, TeamMember>): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(TEAM_MEMBERS_KEY, JSON.stringify(teamMembers));
+};
+
+export const createTeamMember = (
+  teamMember: Omit<TeamMember, 'id' | 'createdAt'>,
+  currentTeamMembers: Record<string, TeamMember>
+): { teamMembers: Record<string, TeamMember>; newTeamMember: TeamMember } => {
+  const timestamp = Date.now();
+  const id = uuidv4();
+  
+  const newTeamMember: TeamMember = {
+    ...teamMember,
+    id,
+    createdAt: timestamp,
+  };
+  
+  const updatedTeamMembers = {
+    ...currentTeamMembers,
+    [id]: newTeamMember,
+  };
+  
+  saveTeamMembers(updatedTeamMembers);
+  
+  return { teamMembers: updatedTeamMembers, newTeamMember };
+};
+
+export const updateTeamMember = (
+  updatedTeamMember: TeamMember,
+  currentTeamMembers: Record<string, TeamMember>
+): { teamMembers: Record<string, TeamMember> } => {
+  const newTeamMembers = {
+    ...currentTeamMembers,
+    [updatedTeamMember.id]: updatedTeamMember,
+  };
+  
+  saveTeamMembers(newTeamMembers);
+  
+  return { teamMembers: newTeamMembers };
+};
+
+export const deleteTeamMember = (
+  teamMemberId: string,
+  currentTeamMembers: Record<string, TeamMember>,
+  currentLeads: Record<string, Lead>
+): { teamMembers: Record<string, TeamMember>; leads: Record<string, Lead> } => {
+  const { [teamMemberId]: omitted, ...remainingTeamMembers } = currentTeamMembers; // eslint-disable-line @typescript-eslint/no-unused-vars
+  
+  // Update any leads assigned to this team member
+  const updatedLeads: Record<string, Lead> = {};
+  
+  Object.values(currentLeads).forEach(lead => {
+    if (lead.assignedTo === teamMemberId) {
+      updatedLeads[lead.id] = { ...lead, assignedTo: undefined };
+    } else {
+      updatedLeads[lead.id] = lead;
+    }
+  });
+  
+  saveTeamMembers(remainingTeamMembers);
+  saveToStorage(initializeStorage().board, updatedLeads);
+  
+  return { teamMembers: remainingTeamMembers, leads: updatedLeads };
 };

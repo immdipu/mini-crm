@@ -5,6 +5,7 @@ import { BoardColumn } from '@/components/board/BoardColumn';
 import { LeadForm } from '@/components/lead/LeadForm';
 import { ImportModal } from '@/components/board/ImportModal';
 import { Button } from '@/components/ui/Button';
+import { Navigation } from '@/components/ui/Navigation';
 import { useBoard } from '@/context/BoardContext';
 import { Lead, Status } from '@/types';
 
@@ -92,7 +93,10 @@ export const Board = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <h1 className="text-lg font-medium">Sales CRM Board</h1>
+        <div className="flex items-center gap-5">
+          <h1 className="text-lg font-medium">Sales CRM Board</h1>
+          <Navigation />
+        </div>
         
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => setIsImportModalOpen(true)}>

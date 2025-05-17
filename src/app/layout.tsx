@@ -11,7 +11,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Sales CRM Board",
+  title: "Mini CRM",
   description: "A Kanban-style CRM board for managing sales leads",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={geistSans.variable}>
       <body
-        className="font-sans antialiased text-gray-900 bg-[#f8f9fa]"
+        className="font-sans antialiased text-gray-900 bg-[#f8f9fa] overflow-hidden"
       >
         {children}
       </body>

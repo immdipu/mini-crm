@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Lead, Status, Priority } from '@/types';
+import { Lead, Status, Priority, TeamMember } from '@/types';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/card';
 import { useLeadDrag, useLeadDrop } from '@/hooks/useLeadDragDrop';
+import { initializeTeamMembers } from '@/utils/storage';
+import { AtSign, Phone, Globe, Users } from 'lucide-react';
 
 interface LeadCardProps {
   lead: Lead;
@@ -18,6 +20,13 @@ interface LeadCardProps {
 
 export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: LeadCardProps) => {
   const [showActions, setShowActions] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<Record<string, TeamMember>>({});
+  
+  useEffect(() => {
+    // Load team members
+    const loadedMembers = initializeTeamMembers();
+    setTeamMembers(loadedMembers);
+  }, []);
   
   const getPriorityColor = (priority: Priority) => {
     switch (priority) {
@@ -32,6 +41,17 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
     }
   };
   
+  const getLeadSourceLabel = (source?: string) => {
+    switch (source) {
+      case 'website': return 'Website';
+      case 'referral': return 'Referral';
+      case 'social_media': return 'Social Media';
+      case 'email_campaign': return 'Email Campaign';
+      case 'event': return 'Event';
+      case 'other': return 'Other';
+      default: return null;
+    }
+  };
 
   const formatDate = (timestamp: number | undefined) => {
     try {
@@ -112,6 +132,37 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
           <Badge className={`text-[10px] px-1.5 py-0.5 ${getPriorityColor(lead.priority)}`}>
             {lead.priority}
           </Badge>
+        </div>
+        
+        {/* Contact info */}
+        <div className="mb-2 space-y-1">
+          {lead.email && (
+            <div className="flex items-center text-xs text-gray-600 gap-1">
+              <AtSign size={12} className="text-gray-400" />
+              <span className="truncate max-w-[200px]">{lead.email}</span>
+            </div>
+          )}
+          
+          {lead.phone && (
+            <div className="flex items-center text-xs text-gray-600 gap-1">
+              <Phone size={12} className="text-gray-400" />
+              <span>{lead.phone}</span>
+            </div>
+          )}
+          
+          {lead.leadSource && (
+            <div className="flex items-center text-xs text-gray-600 gap-1">
+              <Globe size={12} className="text-gray-400" />
+              <span>{getLeadSourceLabel(lead.leadSource)}</span>
+            </div>
+          )}
+          
+          {lead.assignedTo && teamMembers[lead.assignedTo] && (
+            <div className="flex items-center text-xs text-gray-600 gap-1">
+              <Users size={12} className="text-gray-400" />
+              <span>{teamMembers[lead.assignedTo].name}</span>
+            </div>
+          )}
         </div>
         
         {lead.notes && (
