@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lead, Status, Priority, TeamMember } from '@/types';
-import { Badge } from '@/components/ui/Badge';
+import { Lead, Status, TeamMember } from '@/types';
+
 import { Card } from '@/components/ui/card';
 import { useLeadDrag, useLeadDrop } from '@/hooks/useLeadDragDrop';
 import { initializeTeamMembers } from '@/utils/storage';
@@ -29,18 +29,7 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
     setTeamMembers(loadedMembers);
   }, []);
 
-  const getPriorityColor = (priority: Priority) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'low':
-        return 'bg-green-100 text-green-800 border-green-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+
 
   const getLeadSourceLabel = (source?: string) => {
     switch (source) {
@@ -114,13 +103,20 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
         damping: 50,
         duration: 0.15
       }}
-      className={`relative ${isDragging ? 'z-10' : 'z-0'}`}
+      className={`relative rounded-md ${isDragging ? 'z-10' : 'z-0'}`}
       data-lead-id={lead.id}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <Card className={`p-0 border border-gray-100 bg-white cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'} ${showDetails ? 'ring-1 ring-blue-100' : ''}`}>
-        <div className="p-3">
+      <Card className={`p-0  rounded-md border-none bg-white cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'} ${showDetails ? 'ring-1 ring-blue-100' : ''} relative overflow-hidden`}>
+        {/* Priority vertical bar */}
+        <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+          lead.priority === 'high' ? 'bg-red-500' :
+          lead.priority === 'medium' ? 'bg-orange-500' :
+          'bg-green-500'
+        }`}></div>
+
+        <div className="p-3 pl-4">
           {/* Basic info - Always visible */}
           <div className="flex items-start justify-between">
             <div className="mr-2">
@@ -132,24 +128,7 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
               </p>
             </div>
 
-            <div className="relative h-[22px] min-w-[50px]">
-              <motion.div
-                initial={{ opacity: 1, scale: 1 }}
-                animate={{
-                  opacity: showActions ? 0 : 1,
-                  scale: showActions ? 0.8 : 1,
-                  x: showActions ? 10 : 0
-                }}
-                transition={{
-                  duration: 0.2,
-                  ease: "easeInOut"
-                }}
-                className="absolute top-0 right-0 origin-right"
-              >
-                <Badge className={`text-[10px] px-1.5 py-0.5 ${getPriorityColor(lead.priority)}`}>
-                  {lead.priority}
-                </Badge>
-              </motion.div>
+            <div className="relative h-[22px] min-w-[40px]">
 
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -254,23 +233,22 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
           </AnimatePresence>
 
           {/* Arrow button - Always at the bottom */}
-          <div className="mt-3 flex justify-center">
-            <button
-              onClick={() => setShowDetails(!showDetails)}
-              className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors"
+          <div
+            className="mt-3 -mb-1 flex justify-center cursor-pointer"
+            onClick={() => setShowDetails(!showDetails)}
+          >
+            <motion.div
+              animate={{
+                rotate: showDetails ? 180 : 0,
+              }}
+              transition={{
+                duration: 0.3,
+                ease: "easeInOut"
+              }}
+              className="text-gray-300 hover:text-gray-500 transition-colors"
             >
-              <motion.div
-                animate={{
-                  rotate: showDetails ? 180 : 0,
-                }}
-                transition={{
-                  duration: 0.3,
-                  ease: "easeInOut"
-                }}
-              >
-                <ChevronDown size={14} className="text-gray-400" />
-              </motion.div>
-            </button>
+              <ChevronDown size={16} />
+            </motion.div>
           </div>
         </div>
 
