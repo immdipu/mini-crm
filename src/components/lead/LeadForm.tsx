@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal } from '@/components/ui/Modal';
+import { ModalDialog } from '@/components/ui/ModalDialog';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
@@ -96,8 +96,8 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
   ];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={initialData ? 'Edit Lead' : 'Add New Lead'}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <ModalDialog isOpen={isOpen} onClose={onClose} title={initialData ? 'Edit Lead' : 'Add New Lead'}>
+      <form onSubmit={handleSubmit} className="space-y-4" onClick={(e) => e.stopPropagation()}>
         <div className="space-y-1">
           <label htmlFor="name" className="text-sm font-medium mb-1 block">Name</label>
           <Input
@@ -134,10 +134,10 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
               value={formData.priority as string}
               onValueChange={(value) => handleSelectChange('priority', value)}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full" onClick={(e) => e.stopPropagation()}>
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent onClick={(e) => e.stopPropagation()}>
                 {priorityOptions.map(option => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -154,10 +154,10 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
               value={formData.status as string}
               onValueChange={(value) => handleSelectChange('status', value)}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full" onClick={(e) => e.stopPropagation()}>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent onClick={(e) => e.stopPropagation()}>
                 {statusOptions.map(option => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -190,6 +190,6 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
           </Button>
         </div>
       </form>
-    </Modal>
+    </ModalDialog>
   );
 };

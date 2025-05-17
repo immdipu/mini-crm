@@ -19,7 +19,6 @@ interface LeadCardProps {
 export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: LeadCardProps) => {
   const [showActions, setShowActions] = useState(false);
   
-  // Get priority badge color
   const getPriorityColor = (priority: Priority) => {
     switch (priority) {
       case 'high':
@@ -59,22 +58,20 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
     }
   };
   
-  // Use React DnD hooks
+
   const { isDragging, drag } = useLeadDrag(lead, index, columnId);
   const { drop } = useLeadDrop(columnId, index, moveCard);
   
-  // Create refs for drag and drop
+ 
   const cardRef = useRef<HTMLDivElement>(null);
   
-  // Function to combine refs
+
   const attachRefs = (element: HTMLDivElement | null) => {
-    // Connect drag ref
+
     drag(element);
-    
-    // Connect drop ref
+
     drop.current = element;
-    
-    // Store element in our local ref
+  
     if (cardRef) {
       cardRef.current = element;
     }
@@ -149,7 +146,9 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete(lead.id);
+                if (lead && lead.id) {
+                  onDelete(lead.id);
+                }
               }}
               className="p-1 text-gray-400 hover:text-red-500 transition-colors"
             >

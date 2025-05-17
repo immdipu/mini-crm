@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Modal } from '@/components/ui/Modal';
+import { ModalDialog } from '@/components/ui/ModalDialog';
 import { FileImport } from '@/components/ui/FileImport';
 import { Button } from '@/components/ui/Button';
 import { useBoard } from '@/context/BoardContext';
@@ -43,7 +43,7 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={resetState} title="Import Leads">
+    <ModalDialog isOpen={isOpen} onClose={resetState} title="Import Leads">
       <div className="space-y-4">
         <div className="mb-4">
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -138,6 +138,6 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
           </Button>
         </div>
       </div>
-    </Modal>
+    </ModalDialog>
   );
 };

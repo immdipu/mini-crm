@@ -66,7 +66,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
 
 
   const removeLead = (leadId: string) => {
-    if (!board) return;
+    if (!board || !leadId) return;
     
     const result = deleteLead(leadId, board, leads);
     setBoard(result.board);

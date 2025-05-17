@@ -151,8 +151,17 @@ export const deleteLead = (
   currentLeads: Record<string, Lead>
 ): { board: Board; leads: Record<string, Lead> } => {
   const lead = currentLeads[leadId];
+  
+  // If lead doesn't exist, return current state unchanged
+  if (!lead) {
+    console.error(`Cannot delete lead with ID ${leadId}: Lead not found`);
+    return { board: currentBoard, leads: currentLeads };
+  }
+  
   // Delete the lead from the record using object destructuring
   const { [leadId]: omitted, ...remainingLeads } = currentLeads; // eslint-disable-line @typescript-eslint/no-unused-vars
+  
+  // Now that we know lead exists, update the column
   const updatedColumns = {
     ...currentBoard.columns,
     [lead.status]: {
