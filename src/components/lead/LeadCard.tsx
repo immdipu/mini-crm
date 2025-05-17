@@ -2,6 +2,8 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/Badge';
 import { Lead, Priority } from '@/types';
 
 interface LeadCardProps {
@@ -20,10 +22,16 @@ export const LeadCard = ({ lead, onEdit, onDelete }: LeadCardProps) => {
   });
 
   const priorityColors = {
-    high: 'bg-danger',
-    medium: 'bg-warning',
-    low: 'bg-success',
+    high: 'border-destructive',
+    medium: 'border-warning',
+    low: 'border-success',
   };
+
+  const priorityVariants = {
+    high: 'destructive',
+    medium: 'warning',
+    low: 'success',
+  } as const;
 
   const priorityLabels = {
     high: 'High',
@@ -44,54 +52,62 @@ export const LeadCard = ({ lead, onEdit, onDelete }: LeadCardProps) => {
   };
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className={`bg-white dark:bg-gray-800 rounded-lg shadow p-3 cursor-grab mb-3 border-l-4 ${
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      whileHover={{ scale: 1.01 }}
+      className={`bg-white rounded-md shadow-sm p-3 cursor-grab border border-l-2 ${
         priorityColors[lead.priority]
-      } ${isDragging ? 'opacity-50' : 'opacity-100'} hover:shadow-md transition-shadow`}
+      } ${isDragging ? 'opacity-50 shadow-md' : 'opacity-100'} transition-all`}
     >
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="font-semibold text-gray-800 dark:text-gray-200 truncate">{lead.name}</h3>
+      <div className="flex justify-between items-start mb-1.5">
+        <h3 className="font-medium text-sm text-gray-900 truncate">{lead.name}</h3>
         <div className="flex gap-1">
-          <button
+          <motion.button
             onClick={(e) => {
               e.stopPropagation();
               onEdit(lead);
             }}
-            className="p-1 text-gray-500 hover:text-primary rounded"
+            className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
             aria-label="Edit lead"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
             </svg>
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={(e) => {
               e.stopPropagation();
               onDelete(lead.id);
             }}
-            className="p-1 text-gray-500 hover:text-danger rounded"
+            className="p-1 text-gray-400 hover:text-destructive rounded transition-colors"
             aria-label="Delete lead"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-          </button>
+          </motion.button>
         </div>
       </div>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 truncate">{lead.company}</p>
+      <p className="text-xs text-gray-500 mb-1.5 truncate">{lead.company}</p>
       {lead.notes && (
-        <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2 mb-2">{lead.notes}</p>
+        <p className="text-xs text-gray-400 line-clamp-2 mb-2 leading-relaxed">{lead.notes}</p>
       )}
       <div className="flex justify-between items-center text-xs">
-        <span className={`px-2 py-0.5 rounded-full ${priorityColors[lead.priority]} bg-opacity-20 text-gray-800 dark:text-gray-200`}>
+        <Badge variant={priorityVariants[lead.priority]}>
           {priorityLabels[lead.priority]}
-        </span>
-        <span className="text-gray-500 dark:text-gray-400">{formatDate(lead.updatedAt)}</span>
+        </Badge>
+        <span className="text-gray-400">{formatDate(lead.updatedAt)}</span>
       </div>
-    </div>
+    </motion.div>
   );
 };

@@ -17,6 +17,7 @@ import {
   sortableKeyboardCoordinates, 
   arrayMove,
 } from '@dnd-kit/sortable';
+import { motion, AnimatePresence } from 'framer-motion';
 import { BoardColumn } from '@/components/board/BoardColumn';
 import { LeadCard } from '@/components/lead/LeadCard';
 import { LeadForm } from '@/components/lead/LeadForm';
@@ -193,10 +194,15 @@ export const Board = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading your leads...</p>
-        </div>
+        <motion.div 
+          className="flex flex-col items-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-3"></div>
+          <p className="text-gray-500 text-sm">Loading your leads...</p>
+        </motion.div>
       </div>
     );
   }
@@ -204,32 +210,38 @@ export const Board = () => {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm py-4 px-6 flex items-center justify-between">
-        <h1 className="text-xl font-bold">Sales CRM Board</h1>
+      <motion.header 
+        className="bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between sticky top-0 z-10"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <h1 className="text-lg font-medium">Sales CRM Board</h1>
         
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
-            <span className="flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-              </svg>
-              Import
-            </span>
+          <Button variant="outline" size="sm" onClick={() => setIsImportModalOpen(true)}>
+            <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
+            Import
           </Button>
           
-          <Button onClick={() => handleAddLead()}>
-            <span className="flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Add Lead
-            </span>
+          <Button size="sm" onClick={() => handleAddLead()}>
+            <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Lead
           </Button>
         </div>
-      </div>
+      </motion.header>
       
       {/* Board content */}
-      <div className="flex-1 overflow-x-auto p-6 bg-gray-50 dark:bg-gray-900">
+      <motion.div 
+        className="flex-1 overflow-x-auto p-5 bg-[#f8f9fa]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -237,36 +249,43 @@ export const Board = () => {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-6 h-full">
-            {board.columnOrder.map((columnId) => {
-              const column = board.columns[columnId];
-              return (
-                <BoardColumn
-                  key={column.id}
-                  id={column.id}
-                  title={column.title}
-                  leadIds={column.leadIds}
-                  leads={leads}
-                  onLeadEdit={handleEditLead}
-                  onLeadDelete={removeLead}
-                  onLeadAdd={handleAddLead}
-                />
-              );
-            })}
+          <div className="flex gap-5 h-full">
+            <AnimatePresence>
+              {board.columnOrder.map((columnId) => {
+                const column = board.columns[columnId];
+                return (
+                  <BoardColumn
+                    key={column.id}
+                    id={column.id}
+                    title={column.title}
+                    leadIds={column.leadIds}
+                    leads={leads}
+                    onLeadEdit={handleEditLead}
+                    onLeadDelete={removeLead}
+                    onLeadAdd={handleAddLead}
+                  />
+                );
+              })}
+            </AnimatePresence>
           </div>
           
           {/* Drag overlay to show while dragging */}
           <DragOverlay>
             {activeId && activeLead ? (
-              <LeadCard
-                lead={activeLead}
-                onEdit={handleEditLead}
-                onDelete={removeLead}
-              />
+              <motion.div
+                initial={{ scale: 1.05, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
+                animate={{ scale: 1.05 }}
+              >
+                <LeadCard
+                  lead={activeLead}
+                  onEdit={handleEditLead}
+                  onDelete={removeLead}
+                />
+              </motion.div>
             ) : null}
           </DragOverlay>
         </DndContext>
-      </div>
+      </motion.div>
       
       {/* Modals */}
       <LeadForm
