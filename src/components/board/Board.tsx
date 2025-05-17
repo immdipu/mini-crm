@@ -12,6 +12,7 @@ import {
   DragStartEvent,
   DragOverEvent,
   DragEndEvent,
+  defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
 import { 
   sortableKeyboardCoordinates, 
@@ -43,7 +44,9 @@ export const Board = () => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 3, // Reduced from 5 to make it easier to start dragging
+        tolerance: 3,
+        delay: 0,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -220,14 +223,14 @@ export const Board = () => {
         
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => setIsImportModalOpen(true)}>
-            <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
             </svg>
             Import
           </Button>
           
           <Button size="sm" onClick={() => handleAddLead()}>
-            <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             Add Lead
@@ -270,11 +273,25 @@ export const Board = () => {
           </div>
           
           {/* Drag overlay to show while dragging */}
-          <DragOverlay>
+          <DragOverlay dropAnimation={{
+            duration: 250,
+            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+            sideEffects: defaultDropAnimationSideEffects({
+              styles: {
+                active: {
+                  opacity: '0.4',
+                },
+              },
+            }),
+          }}>
             {activeId && activeLead ? (
               <motion.div
-                initial={{ scale: 1.05, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
-                animate={{ scale: 1.05 }}
+                initial={{ scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
+                animate={{ 
+                  scale: 1.05,
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)"
+                }}
+                className="transform-gpu"
               >
                 <LeadCard
                   lead={activeLead}

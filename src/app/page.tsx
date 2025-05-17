@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <main className="min-h-screen h-screen flex flex-col">
+    <main className="min-h-screen h-screen flex flex-col overflow-hidden bg-[#f8f9fa]">
       <BoardProvider>
         <Board />
       </BoardProvider>
