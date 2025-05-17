@@ -1,8 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { useDroppable } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LeadCard } from '@/components/lead/LeadCard';
 import { Button } from '@/components/ui/Button';
@@ -13,9 +11,15 @@ interface BoardColumnProps {
   title: string;
   leadIds: string[];
   leads: Record<string, Lead>;
+  isHovered?: boolean;
   onLeadEdit: (lead: Lead) => void;
   onLeadDelete: (leadId: string) => void;
   onLeadAdd?: (status: Status) => void;
+  onDragStart: (e: React.DragEvent<Element>, leadId: string, columnId: Status) => void;
+  onDragOver: (e: React.DragEvent<Element>) => void;
+  onDragLeave: (e: React.DragEvent<Element>) => void;
+  onDragEnd: (e: React.DragEvent<Element>) => void;
+  onDrop: (e: React.DragEvent<Element>) => void;
 }
 
 export const BoardColumn = ({
@@ -23,30 +27,34 @@ export const BoardColumn = ({
   title,
   leadIds,
   leads,
+  isHovered = false,
   onLeadEdit,
   onLeadDelete,
   onLeadAdd,
+  onDragStart,
+  onDragOver,
+  onDragLeave,
+  onDragEnd,
+  onDrop,
 }: BoardColumnProps) => {
-  const { setNodeRef } = useDroppable({
-    id,
-  });
-  
   const leadsList = leadIds.map(leadId => leads[leadId]).filter(Boolean);
   
   const columnRef = useRef<HTMLDivElement>(null);
   const [isScrollVisible, setIsScrollVisible] = useState(false);
   
   // Check for scroll visibility when content changes
-  const checkForScroll = () => {
+  useEffect(() => {
     if (columnRef.current) {
       const { scrollHeight, clientHeight } = columnRef.current;
       setIsScrollVisible(scrollHeight > clientHeight);
     }
-  };
+  }, [leadIds.length]);
 
   return (
     <motion.div 
-      className="flex flex-col bg-white rounded-md shadow-sm h-full w-[270px] min-w-[270px] border border-gray-200 overflow-hidden"
+      className={`flex flex-col bg-white rounded-md shadow-sm h-full w-[270px] min-w-[270px] border board-column ${
+        isHovered ? 'border-primary border-2' : 'border-gray-200'
+      } overflow-hidden transition-colors duration-200`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
@@ -74,24 +82,35 @@ export const BoardColumn = ({
         )}
       </div>
       
-      {/* Column content */}
+      {/* Column content - made droppable for the entire column area */}
       <div 
-        ref={(node) => {
-          setNodeRef(node);
-          columnRef.current = node;
-          checkForScroll();
-        }}
-        className={`flex-1 p-3 overflow-y-auto ${isScrollVisible ? 'scrollbar-thin' : ''}`}
+        ref={columnRef}
+        className={`flex-1 p-3 overflow-y-auto ${isScrollVisible ? 'scrollbar-thin' : ''} h-full min-h-[calc(100vh-150px)]`}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        data-column-id={id}
       >
-        <AnimatePresence>
+        <AnimatePresence mode="popLayout">
+          {/* Only show top drop indicator if there's more than one card */}
+          {leadIds.length > 1 && (
+            <div 
+              className="drop-indicator my-0.5 h-0.5 w-full bg-primary opacity-0 transition-opacity duration-200"
+              data-column={id}
+              data-before="-1"
+            />
+          )}
+          
           {leadIds.length === 0 ? (
             <motion.div 
-              className="flex flex-col items-center justify-center h-24 text-center text-gray-400 border border-dashed border-gray-200 rounded-md bg-gray-50/50"
+              className={`flex flex-col items-center justify-center h-32 text-center text-gray-400 border border-dashed ${
+                isHovered ? 'border-primary bg-blue-50/30' : 'border-gray-200 bg-gray-50/50'
+              } rounded-md my-2 transition-colors duration-200`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <p className="text-xs mb-2 text-gray-500">No leads</p>
+              <p className="text-xs mb-2 text-gray-500">Drop leads here</p>
               {onLeadAdd && (
                 <Button 
                   variant="outline" 
@@ -104,21 +123,40 @@ export const BoardColumn = ({
               )}
             </motion.div>
           ) : (
-            <SortableContext items={leadIds} strategy={verticalListSortingStrategy}>
-              <motion.div 
-                className="space-y-2.5"
-                layout
-              >
-                {leadsList.map((lead) => (
+            <motion.div 
+              className="space-y-2.5"
+              layout
+            >
+              {leadsList.map((lead, index) => (
+                <motion.div key={lead.id} layout>
+                  {/* Only show drop indicators between cards if there are multiple cards */}
+                  {leadIds.length > 1 && index > 0 && (
+                    <div 
+                      className="drop-indicator my-0.5 h-0.5 w-full bg-primary opacity-0 transition-opacity duration-200"
+                      data-column={id}
+                      data-before={lead.id}
+                    />
+                  )}
+                  
                   <LeadCard
-                    key={lead.id}
                     lead={lead}
                     onEdit={onLeadEdit}
                     onDelete={onLeadDelete}
+                    onDragStart={onDragStart}
+                    onDragEnd={onDragEnd}
                   />
-                ))}
-              </motion.div>
-            </SortableContext>
+                </motion.div>
+              ))}
+              
+              {/* Only show bottom drop indicator if there's more than one card */}
+              {leadIds.length > 1 && (
+                <div 
+                  className="drop-indicator my-0.5 h-0.5 w-full bg-primary opacity-0 transition-opacity duration-200"
+                  data-column={id}
+                  data-before="-1"
+                />
+              )}
+            </motion.div>
           )}
         </AnimatePresence>
       </div>

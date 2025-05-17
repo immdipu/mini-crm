@@ -1,26 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { 
-  DndContext, 
-  DragOverlay, 
-  closestCorners,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragStartEvent,
-  DragOverEvent,
-  DragEndEvent,
-  defaultDropAnimationSideEffects,
-} from '@dnd-kit/core';
-import { 
-  sortableKeyboardCoordinates, 
-  arrayMove,
-} from '@dnd-kit/sortable';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BoardColumn } from '@/components/board/BoardColumn';
-import { LeadCard } from '@/components/lead/LeadCard';
 import { LeadForm } from '@/components/lead/LeadForm';
 import { ImportModal } from '@/components/board/ImportModal';
 import { Button } from '@/components/ui/Button';
@@ -33,135 +15,222 @@ export const Board = () => {
   // State for drag and drop
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
+  const [activeColumn, setActiveColumn] = useState<Status | null>(null);
+  const [hoverColumn, setHoverColumn] = useState<Status | null>(null);
   
   // State for modals
   const [isLeadFormOpen, setIsLeadFormOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [leadBeingEdited, setLeadBeingEdited] = useState<Lead | undefined>(undefined);
   const [selectedStatus, setSelectedStatus] = useState<Status>('new');
+
+  // Track drop indicators
+  const dropIndicatorRef = useRef<HTMLElement | null>(null);
   
-  // Set up sensors for drag and drop
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 3, // Reduced from 5 to make it easier to start dragging
-        tolerance: 3,
-        delay: 0,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  // Clear all drop indicators
+  const clearDropIndicators = () => {
+    const indicators = document.querySelectorAll('.drop-indicator');
+    indicators.forEach((indicator) => {
+      (indicator as HTMLElement).style.opacity = '0';
+    });
+  };
   
   // Handle drag start
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    setActiveId(active.id as string);
+  const handleDragStart = (e: React.DragEvent<Element>, leadId: string, columnId: Status) => {
+    e.stopPropagation();
     
-    const lead = leads[active.id as string];
-    if (lead) {
-      setActiveLead(lead);
+    const lead = leads[leadId];
+    if (!lead) return;
+    
+    setActiveId(leadId);
+    setActiveLead(lead);
+    setActiveColumn(columnId);
+    
+    if (e.dataTransfer) {
+      e.dataTransfer.setData('text/plain', leadId);
+      e.dataTransfer.effectAllowed = 'move';
     }
   };
   
-  // Handle drag over
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
+  // Handle drag over column
+  const handleDragOverColumn = (e: React.DragEvent<Element>, columnId: Status) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    if (!over) return;
+    if (!activeId || !activeColumn) return;
     
-    const activeId = active.id as string;
-    const overId = over.id as string;
+    // Update hover column
+    setHoverColumn(columnId);
     
-    // Find the containers (columns)
-    const activeContainer = findContainerForLeadId(activeId);
-    const overContainer = findContainerForLeadId(overId) || overId;
+    // Get the column's lead count
+    const leadCount = board.columns[columnId].leadIds.length;
     
-    if (!activeContainer || !overContainer || activeContainer === overContainer) {
+    // If the column is empty or has only one card, we don't need to show indicators
+    if (leadCount <= 1) {
+      clearDropIndicators();
       return;
     }
     
-    // Find the indexes
-    const activeIndex = board.columns[activeContainer as Status].leadIds.indexOf(activeId);
-    const overIndex = board.columns[overContainer as Status].leadIds.indexOf(overId);
+    // Find the nearest indicator
+    const indicators = Array.from(
+      document.querySelectorAll(`[data-column="${columnId}"]`) as NodeListOf<HTMLElement>
+    );
     
-    if (overIndex !== -1) {
-      // If dropping over another lead
-      moveLead(
-        activeContainer as Status,
-        overContainer as Status,
-        activeIndex,
-        overIndex,
-        activeId
-      );
-    } else {
-      // If dropping directly into a column
-      moveLead(
-        activeContainer as Status,
-        overContainer as Status,
-        activeIndex,
-        board.columns[overContainer as Status].leadIds.length,
-        activeId
-      );
+    if (indicators.length === 0) return;
+    
+    // Clear all indicators first
+    clearDropIndicators();
+    
+    // Calculate which indicator is closest
+    const closestIndicator = findNearestIndicator(e, indicators);
+    
+    if (closestIndicator) {
+      closestIndicator.style.opacity = '1';
+      dropIndicatorRef.current = closestIndicator;
+    }
+  };
+  
+  // Find the nearest drop indicator to the current drag position
+  const findNearestIndicator = (e: React.DragEvent<Element>, indicators: HTMLElement[]) => {
+    // If there are no indicators or only one card in the column, return null
+    if (indicators.length === 0) return null;
+    
+    const DISTANCE_OFFSET = 50;
+    
+    // Calculate position relative to each indicator
+    const closest = indicators.reduce(
+      (closest, element) => {
+        const box = element.getBoundingClientRect();
+        const offset = e.clientY - (box.top + DISTANCE_OFFSET);
+        
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element };
+        } else {
+          return closest;
+        }
+      },
+      {
+        offset: Number.NEGATIVE_INFINITY,
+        element: indicators[indicators.length - 1],
+      }
+    );
+    
+    return closest.element;
+  };
+  
+  // Handle drag leave
+  const handleDragLeave = (e: React.DragEvent<Element>) => {
+    e.preventDefault();
+    
+    // Only clear indicators if we're leaving to an area outside a column
+    const relatedTarget = e.relatedTarget as HTMLElement;
+    if (!relatedTarget || !relatedTarget.closest('.board-column')) {
+      clearDropIndicators();
+      setHoverColumn(null);
     }
   };
   
   // Handle drag end
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+  const handleDragEnd = (e: React.DragEvent<Element>) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    setActiveId(null);
-    setActiveLead(null);
+    // Clean up states
+    setTimeout(() => {
+      setActiveId(null);
+      setActiveLead(null);
+      setActiveColumn(null);
+      setHoverColumn(null);
+      clearDropIndicators();
+    }, 50);
+  };
+  
+  // Handle drop on column
+  const handleDrop = (e: React.DragEvent<Element>, columnId: Status) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    if (!over) return;
+    if (!activeId || !activeColumn) return;
     
-    const activeId = active.id as string;
-    const overId = over.id as string;
+    const leadId = e.dataTransfer.getData('text/plain');
+    if (!leadId) return;
     
-    const activeContainer = findContainerForLeadId(activeId);
+    // Find the source column and index
+    const sourceColumnId = activeColumn;
+    const sourceIndex = board.columns[sourceColumnId].leadIds.indexOf(leadId);
     
-    if (!activeContainer) return;
+    if (sourceIndex === -1) return;
     
-    const activeIndex = board.columns[activeContainer as Status].leadIds.indexOf(activeId);
+    // Get the column's lead count
+    const leadCount = board.columns[columnId].leadIds.length;
     
-    if (activeContainer === overId) {
-      // If dropping directly into a column
+    // If the target column is empty, simply append the card
+    if (leadCount === 0) {
+      if (sourceColumnId !== columnId) {
+        moveLead(
+          sourceColumnId,
+          columnId,
+          sourceIndex,
+          0,
+          leadId
+        );
+      }
       return;
     }
     
-    const overContainer = findContainerForLeadId(overId);
-    
-    if (overContainer) {
-      // If dropping over another lead
-      const overIndex = board.columns[overContainer as Status].leadIds.indexOf(overId);
-      
-      if (activeContainer === overContainer) {
-        // Reordering within the same column
-        if (activeIndex !== overIndex) {
-          reorderLeads(activeContainer as Status, activeIndex, overIndex);
-        }
-      } else {
-        // Moving between different columns
+    // If there's only one card in the target column or no drop indicator is active
+    if (leadCount === 1 || !dropIndicatorRef.current) {
+      // Move to the end of the column
+      if (sourceColumnId !== columnId) {
         moveLead(
-          activeContainer as Status,
-          overContainer as Status,
-          activeIndex,
-          overIndex,
-          activeId
+          sourceColumnId,
+          columnId,
+          sourceIndex,
+          leadCount,
+          leadId
         );
       }
+      return;
     }
-  };
-  
-  // Helper function to find which column contains a lead
-  const findContainerForLeadId = (id: string): Status | null => {
-    for (const columnId of board.columnOrder) {
-      if (board.columns[columnId].leadIds.includes(id)) {
-        return columnId;
+    
+    // Get the target position from the indicator
+    const beforeId = dropIndicatorRef.current.dataset.before || "-1";
+    
+    // If dropping at the end of the column
+    if (beforeId === "-1") {
+      if (sourceColumnId !== columnId) {
+        // Move between columns to the end
+        moveLead(
+          sourceColumnId,
+          columnId,
+          sourceIndex,
+          board.columns[columnId].leadIds.length,
+          leadId
+        );
       }
+      return;
     }
-    return null;
+    
+    // Find the index of the target lead
+    const targetIndex = board.columns[columnId].leadIds.indexOf(beforeId);
+    
+    if (targetIndex === -1) return;
+    
+    if (sourceColumnId === columnId) {
+      // Reordering within the same column
+      if (sourceIndex !== targetIndex) {
+        reorderLeads(columnId, sourceIndex, targetIndex);
+      }
+    } else {
+      // Moving between columns
+      moveLead(
+        sourceColumnId,
+        columnId,
+        sourceIndex,
+        targetIndex,
+        leadId
+      );
+    }
   };
   
   // Handle adding a new lead
@@ -211,10 +280,10 @@ export const Board = () => {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-screen overflow-hidden">
       {/* Header */}
       <motion.header 
-        className="bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between sticky top-0 z-10"
+        className="bg-white border-b border-gray-200 px-5 py-2.5 flex items-center justify-between sticky top-0 z-10"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -240,68 +309,38 @@ export const Board = () => {
       
       {/* Board content */}
       <motion.div 
-        className="flex-1 overflow-x-auto p-5 bg-[#f8f9fa]"
+        className="flex-1 overflow-x-auto p-5 bg-[#f8f9fa] h-[calc(100vh-60px)]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex gap-5 h-full">
-            <AnimatePresence>
-              {board.columnOrder.map((columnId) => {
-                const column = board.columns[columnId];
-                return (
-                  <BoardColumn
-                    key={column.id}
-                    id={column.id}
-                    title={column.title}
-                    leadIds={column.leadIds}
-                    leads={leads}
-                    onLeadEdit={handleEditLead}
-                    onLeadDelete={removeLead}
-                    onLeadAdd={handleAddLead}
-                  />
-                );
-              })}
-            </AnimatePresence>
-          </div>
-          
-          {/* Drag overlay to show while dragging */}
-          <DragOverlay dropAnimation={{
-            duration: 250,
-            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-            sideEffects: defaultDropAnimationSideEffects({
-              styles: {
-                active: {
-                  opacity: '0.4',
-                },
-              },
-            }),
-          }}>
-            {activeId && activeLead ? (
-              <motion.div
-                initial={{ scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
-                animate={{ 
-                  scale: 1.05,
-                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)"
-                }}
-                className="transform-gpu"
-              >
-                <LeadCard
-                  lead={activeLead}
-                  onEdit={handleEditLead}
-                  onDelete={removeLead}
+        <div className="flex gap-5 h-full min-h-[calc(100vh-150px)]">
+          <AnimatePresence>
+            {board.columnOrder.map((columnId) => {
+              const column = board.columns[columnId];
+              const isColumnHovered = hoverColumn === columnId;
+              
+              return (
+                <BoardColumn
+                  key={column.id}
+                  id={column.id}
+                  title={column.title}
+                  leadIds={column.leadIds}
+                  leads={leads}
+                  isHovered={isColumnHovered}
+                  onLeadEdit={handleEditLead}
+                  onLeadDelete={removeLead}
+                  onLeadAdd={handleAddLead}
+                  onDragStart={handleDragStart}
+                  onDragOver={(e) => handleDragOverColumn(e, columnId)}
+                  onDragLeave={handleDragLeave}
+                  onDragEnd={handleDragEnd}
+                  onDrop={(e) => handleDrop(e, columnId)}
                 />
-              </motion.div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+              );
+            })}
+          </AnimatePresence>
+        </div>
       </motion.div>
       
       {/* Modals */}

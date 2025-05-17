@@ -1,26 +1,21 @@
 'use client';
 
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/Badge';
-import { Lead, Priority } from '@/types';
+import { Lead, Priority, Status } from '@/types';
 
 interface LeadCardProps {
   lead: Lead;
   onEdit: (lead: Lead) => void;
   onDelete: (leadId: string) => void;
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>, leadId: string, columnId: Status) => void;
+  onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void;
 }
 
-export const LeadCard = ({ lead, onEdit, onDelete }: LeadCardProps) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: lead.id,
-    data: {
-      type: 'lead',
-      lead,
-    },
-  });
-
+export const LeadCard = ({ lead, onEdit, onDelete, onDragStart, onDragEnd }: LeadCardProps) => {
+  const [isDragging, setIsDragging] = useState(false);
+  
   const priorityColors = {
     high: 'border-destructive',
     medium: 'border-warning',
@@ -38,10 +33,29 @@ export const LeadCard = ({ lead, onEdit, onDelete }: LeadCardProps) => {
     medium: 'Medium',
     low: 'Low',
   };
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+  
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    if (onDragStart) {
+      e.dataTransfer.setData('text/plain', lead.id);
+      e.dataTransfer.effectAllowed = 'move';
+      
+      // Create a ghost image that's a bit smaller for better UX
+      const element = e.currentTarget;
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        e.dataTransfer.setDragImage(element, rect.width / 2, 20);
+      }
+      
+      setIsDragging(true);
+      onDragStart(e, lead.id, lead.status);
+    }
+  };
+  
+  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    if (onDragEnd) {
+      setIsDragging(false);
+      onDragEnd(e);
+    }
   };
 
   const formatDate = (timestamp: number) => {
@@ -53,14 +67,20 @@ export const LeadCard = ({ lead, onEdit, onDelete }: LeadCardProps) => {
 
   return (
     <motion.div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
+      draggable="true"
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      whileHover={{ scale: 1.01, boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      layout
+      layoutId={lead.id}
+      transition={{ 
+        type: "spring", 
+        stiffness: 500, 
+        damping: 30,
+        mass: 1 
+      }}
       className={`bg-white rounded-md shadow-sm p-3 cursor-grab border border-l-2 ${
         priorityColors[lead.priority]
       } ${isDragging ? 'opacity-50 shadow-md' : 'opacity-100'} transition-all duration-200`}
