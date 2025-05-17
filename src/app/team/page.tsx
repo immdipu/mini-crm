@@ -8,15 +8,16 @@ export default function TeamPage() {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <motion.header 
-        className="bg-white border-b border-gray-200 px-5 py-2.5 flex items-center sticky top-0 z-10"
+        className="bg-white border-b border-gray-200 px-5 py-3 flex flex-col items-center justify-between sticky top-0 z-10"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="flex items-center gap-5">
+        <div className="w-full flex items-center justify-between mb-2">
           <h1 className="text-lg font-medium">Team Management</h1>
-          <Navigation />
         </div>
+        
+        <Navigation />
       </motion.header>
       
       <motion.div 
