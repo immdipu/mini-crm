@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { TeamMembers } from '@/components/team/TeamMembers';
-import { Navigation } from '@/components/ui/Navigation';
 
 export default function TeamPage() {
   return (

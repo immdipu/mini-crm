@@ -33,7 +33,7 @@ export const ModalDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className={`${maxWidthClasses[maxWidth]} p-0 gap-0`}
+        className={`${maxWidthClasses[maxWidth]} p-0 gap-0 max-h-[90vh] overflow-hidden`}
         onEscapeKeyDown={onClose}
         onInteractOutside={(e) => {
           e.preventDefault();
@@ -43,7 +43,7 @@ export const ModalDialog = ({
         <DialogHeader className="p-3 border-b">
           <DialogTitle className="text-sm font-medium text-gray-900">{title}</DialogTitle>
         </DialogHeader>
-        <div className="p-4">
+        <div className="p-4 overflow-y-auto max-h-[calc(90vh-60px)]">
           {children}
         </div>
       </DialogContent>

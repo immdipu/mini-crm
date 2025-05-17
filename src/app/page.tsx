@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { Board } from '@/components/board/Board';
-import { BoardProvider } from '@/context/BoardContext';
 import DndContext from '@/context/DndContext';
 
 export const metadata: Metadata = {
@@ -12,11 +11,9 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <main className="min-h-screen h-screen flex flex-col overflow-hidden bg-[#f8f9fa]">
-      <BoardProvider>
-        <DndContext>
-          <Board />
-        </DndContext>
-      </BoardProvider>
+      <DndContext>
+        <Board />
+      </DndContext>
     </main>
   );
 }

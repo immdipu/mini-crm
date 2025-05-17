@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Navigation } from '@/components/ui/Navigation';
 
 export default function IntegrationPage() {
     return (

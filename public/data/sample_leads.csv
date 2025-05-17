@@ -1,0 +1,11 @@
+contact_name,organization,importance,comments,lead_status,contact_email,contact_phone,source
+John Doe,Acme Inc,high,Follow up next week,new,john.doe@acme.com,555-123-4567,website
+Jane Smith,XYZ Corp,medium,Interested in product demo,contacted,jane.smith@xyz.com,555-987-6543,referral
+Michael Johnson,ABC Solutions,low,Sent initial proposal,qualified,michael@abcsolutions.com,555-456-7890,social_media
+Sarah Williams,Tech Innovators,medium,Needs pricing information,new,sarah@techinnovators.com,555-234-5678,email_campaign
+Robert Brown,Global Systems,high,Decision pending next month,qualified,robert@globalsystems.com,555-876-5432,event
+Emily Davis,Future Enterprises,low,Initial contact made,contacted,emily@futureenterprises.com,555-345-6789,website
+David Wilson,Smart Solutions,medium,Requested follow-up call,new,david@smartsolutions.com,555-654-3210,referral
+Lisa Taylor,Bright Ideas LLC,high,Very interested in our premium plan,qualified,lisa@brightideas.com,555-789-0123,social_media
+James Anderson,Innovative Tech,medium,Sent product information,contacted,james@innovativetech.com,555-321-0987,email_campaign
+Jennifer Martinez,Strategic Systems,low,Initial meeting scheduled,new,jennifer@strategicsystems.com,555-210-9876,event

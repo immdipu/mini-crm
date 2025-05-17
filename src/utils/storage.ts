@@ -1,8 +1,20 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Board, Column, Lead, Status, ImportedLead, Priority, TeamMember, LeadSource } from '@/types';
+import {
+  Board,
+  Column,
+  Lead,
+  Status,
+  ImportedLead,
+  Priority,
+  TeamMember,
+  LeadSource,
+  FieldMapping,
+  MappingTemplate
+} from '@/types';
 
 const STORAGE_KEY = 'mini-crm-data';
 const TEAM_MEMBERS_KEY = 'mini-crm-team-members';
+const MAPPING_TEMPLATES_KEY = 'mini-crm-mapping-templates';
 
 const initialColumns: Record<Status, Column> = {
   new: {
@@ -43,7 +55,7 @@ export const initializeStorage = (): { board: Board; leads: Record<string, Lead>
   }
 
   const storedData = localStorage.getItem(STORAGE_KEY);
-  
+
   if (!storedData) {
     const defaultData = { board: initialBoard, leads: {} };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
@@ -65,20 +77,20 @@ export const createLead = (
 ): { board: Board; leads: Record<string, Lead>; newLead: Lead } => {
   const timestamp = Date.now();
   const id = uuidv4();
-  
+
   const newLead: Lead = {
     ...lead,
     id,
     createdAt: timestamp,
     updatedAt: timestamp,
   };
-  
+
 
   const updatedLeads = {
     ...currentLeads,
     [id]: newLead,
   };
-  
+
 
   const updatedColumns = {
     ...currentBoard.columns,
@@ -87,14 +99,14 @@ export const createLead = (
       leadIds: [...currentBoard.columns[lead.status].leadIds, id],
     },
   };
-  
+
   const updatedBoard: Board = {
     ...currentBoard,
     columns: updatedColumns,
   };
-  
+
   saveToStorage(updatedBoard, updatedLeads);
-  
+
   return { board: updatedBoard, leads: updatedLeads, newLead };
 };
 
@@ -105,7 +117,7 @@ export const updateLead = (
 ): { board: Board; leads: Record<string, Lead> } => {
   const oldLead = currentLeads[updatedLead.id];
   const timestamp = Date.now();
-  
+
 
   const newLeads = {
     ...currentLeads,
@@ -114,16 +126,16 @@ export const updateLead = (
       updatedAt: timestamp,
     },
   };
-  
+
 
   let newBoard = { ...currentBoard };
-  
+
   if (oldLead.status !== updatedLead.status) {
     const oldColumn = { ...currentBoard.columns[oldLead.status] };
     const newOldLeadIds = oldColumn.leadIds.filter(id => id !== updatedLead.id);
     const newColumn = { ...currentBoard.columns[updatedLead.status] };
     const newLeadIds = [...newColumn.leadIds, updatedLead.id];
-    
+
     newBoard = {
       ...currentBoard,
       columns: {
@@ -139,9 +151,9 @@ export const updateLead = (
       },
     };
   }
-  
+
   saveToStorage(newBoard, newLeads);
-  
+
   return { board: newBoard, leads: newLeads };
 };
 
@@ -152,16 +164,16 @@ export const deleteLead = (
   currentLeads: Record<string, Lead>
 ): { board: Board; leads: Record<string, Lead> } => {
   const lead = currentLeads[leadId];
-  
+
   // If lead doesn't exist, return current state unchanged
   if (!lead) {
     console.error(`Cannot delete lead with ID ${leadId}: Lead not found`);
     return { board: currentBoard, leads: currentLeads };
   }
-  
+
   // Delete the lead from the record using object destructuring
   const { [leadId]: omitted, ...remainingLeads } = currentLeads; // eslint-disable-line @typescript-eslint/no-unused-vars
-  
+
   // Now that we know lead exists, update the column
   const updatedColumns = {
     ...currentBoard.columns,
@@ -170,14 +182,14 @@ export const deleteLead = (
       leadIds: currentBoard.columns[lead.status].leadIds.filter(id => id !== leadId),
     },
   };
-  
+
   const updatedBoard: Board = {
     ...currentBoard,
     columns: updatedColumns,
   };
-  
+
   saveToStorage(updatedBoard, remainingLeads);
-  
+
   return { board: updatedBoard, leads: remainingLeads };
 };
 
@@ -192,7 +204,7 @@ export const reorderLeadsInColumn = (
   const newLeadIds = Array.from(column.leadIds);
   const [removed] = newLeadIds.splice(sourceIndex, 1);
   newLeadIds.splice(destinationIndex, 0, removed);
-  
+
   const updatedColumns = {
     ...currentBoard.columns,
     [columnId]: {
@@ -200,14 +212,14 @@ export const reorderLeadsInColumn = (
       leadIds: newLeadIds,
     },
   };
-  
+
   const updatedBoard: Board = {
     ...currentBoard,
     columns: updatedColumns,
   };
-  
+
   saveToStorage(updatedBoard, currentLeads);
-  
+
   return { board: updatedBoard, leads: currentLeads };
 };
 
@@ -226,7 +238,7 @@ export const moveLeadBetweenColumns = (
   const destinationColumn = currentBoard.columns[destinationColumnId];
   const destinationLeadIds = Array.from(destinationColumn.leadIds);
   destinationLeadIds.splice(destinationIndex, 0, leadId);
-  
+
   const updatedLeads = {
     ...currentLeads,
     [leadId]: {
@@ -235,7 +247,7 @@ export const moveLeadBetweenColumns = (
       updatedAt: Date.now(),
     },
   };
-  
+
   const updatedColumns = {
     ...currentBoard.columns,
     [sourceColumnId]: {
@@ -247,14 +259,14 @@ export const moveLeadBetweenColumns = (
       leadIds: destinationLeadIds,
     },
   };
-  
+
   const updatedBoard: Board = {
     ...currentBoard,
     columns: updatedColumns,
   };
-  
+
   saveToStorage(updatedBoard, updatedLeads);
-  
+
   return { board: updatedBoard, leads: updatedLeads };
 };
 
@@ -265,12 +277,12 @@ export const importLeads = (
 ): { board: Board; leads: Record<string, Lead> } => {
   let updatedBoard = { ...currentBoard };
   let updatedLeads = { ...currentLeads };
-  
+
   importedLeads.forEach(importedLead => {
     const timestamp = Date.now();
     const id = uuidv4();
     const status = importedLead.status || 'new';
-    
+
     const newLead: Lead = {
       id,
       name: importedLead.name,
@@ -281,12 +293,12 @@ export const importLeads = (
       createdAt: timestamp,
       updatedAt: timestamp,
     };
-    
+
     updatedLeads = {
       ...updatedLeads,
       [id]: newLead,
     };
-    
+
     updatedBoard = {
       ...updatedBoard,
       columns: {
@@ -298,9 +310,9 @@ export const importLeads = (
       },
     };
   });
-  
+
   saveToStorage(updatedBoard, updatedLeads);
-  
+
   return { board: updatedBoard, leads: updatedLeads };
 };
 
@@ -308,11 +320,11 @@ export const importLeads = (
 export const parseCSV = (csv: string): ImportedLead[] => {
   const lines = csv.split('\n');
   const headers = lines[0].split(',').map(header => header.trim());
-  
+
   return lines.slice(1).filter(line => line.trim()).map(line => {
     const values = line.split(',').map(value => value.trim());
     const lead: Partial<ImportedLead> = {};
-    
+
     headers.forEach((header, index) => {
       if (header === 'name') lead.name = values[index];
       if (header === 'company') lead.company = values[index];
@@ -324,7 +336,7 @@ export const parseCSV = (csv: string): ImportedLead[] => {
       if (header === 'leadSource') lead.leadSource = values[index] as LeadSource;
       if (header === 'assignedTo') lead.assignedTo = values[index];
     });
-    
+
     return lead as ImportedLead;
   });
 };
@@ -339,6 +351,135 @@ export const parseJSON = (json: string): ImportedLead[] => {
   }
 };
 
+// Apply field mappings to imported data
+export const applyFieldMappings = (
+  data: Record<string, any>[],
+  mappings: FieldMapping[]
+): ImportedLead[] => {
+  return data.map(row => {
+    const mappedLead: Partial<ImportedLead> = {};
+
+    mappings.forEach(mapping => {
+      if (mapping.sourceField && mapping.targetField) {
+        const value = row[mapping.sourceField];
+
+        // Handle different data types
+        if (mapping.dataType === 'enum' && mapping.enumValues) {
+          // For enum fields, check if the value is in the allowed values
+          if (mapping.enumValues.includes(value)) {
+            // @ts-ignore - we know this is a valid field
+            mappedLead[mapping.targetField] = value;
+          } else if (mapping.defaultValue) {
+            // @ts-ignore - we know this is a valid field
+            mappedLead[mapping.targetField] = mapping.defaultValue;
+          }
+        } else if (value !== undefined && value !== null) {
+          // @ts-ignore - we know this is a valid field
+          mappedLead[mapping.targetField] = value;
+        } else if (mapping.defaultValue !== undefined) {
+          // @ts-ignore - we know this is a valid field
+          mappedLead[mapping.targetField] = mapping.defaultValue;
+        }
+      }
+    });
+
+    // Ensure required fields have values
+    if (!mappedLead.name) mappedLead.name = 'Unnamed Lead';
+    if (!mappedLead.company) mappedLead.company = 'Unknown Company';
+    if (!mappedLead.priority) mappedLead.priority = 'medium';
+
+    return mappedLead as ImportedLead;
+  });
+};
+
+// Parse CSV with field mappings
+export const parseCSVWithMappings = (
+  csv: string,
+  mappings: FieldMapping[]
+): ImportedLead[] => {
+  try {
+    const lines = csv.split('\n');
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(',').map(header => header.trim());
+    const rows = lines.slice(1).filter(line => line.trim()).map(line => {
+      const values = line.split(',').map(value => value.trim());
+      const row: Record<string, any> = {};
+
+      headers.forEach((header, index) => {
+        if (index < values.length) {
+          row[header] = values[index];
+        }
+      });
+
+      return row;
+    });
+
+    return applyFieldMappings(rows, mappings);
+  } catch (error) {
+    console.error('Error parsing CSV:', error);
+    return [];
+  }
+};
+
+// Parse JSON with field mappings
+export const parseJSONWithMappings = (
+  json: string,
+  mappings: FieldMapping[]
+): ImportedLead[] => {
+  try {
+    const parsed = JSON.parse(json);
+    const data = Array.isArray(parsed) ? parsed : [];
+    return applyFieldMappings(data, mappings);
+  } catch (error) {
+    console.error('Error parsing JSON:', error);
+    return [];
+  }
+};
+
+// Mapping template functions
+export const loadMappingTemplates = (): MappingTemplate[] => {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  const storedData = localStorage.getItem(MAPPING_TEMPLATES_KEY);
+
+  if (!storedData) {
+    localStorage.setItem(MAPPING_TEMPLATES_KEY, JSON.stringify([]));
+    return [];
+  }
+
+  return JSON.parse(storedData);
+};
+
+export const saveMappingTemplate = (template: MappingTemplate): void => {
+  if (typeof window === 'undefined') return;
+
+  const templates = loadMappingTemplates();
+  const existingIndex = templates.findIndex(t => t.id === template.id);
+
+  if (existingIndex >= 0) {
+    templates[existingIndex] = {
+      ...template,
+      updatedAt: Date.now(),
+    };
+  } else {
+    templates.push(template);
+  }
+
+  localStorage.setItem(MAPPING_TEMPLATES_KEY, JSON.stringify(templates));
+};
+
+export const deleteMappingTemplate = (templateId: string): void => {
+  if (typeof window === 'undefined') return;
+
+  const templates = loadMappingTemplates();
+  const filteredTemplates = templates.filter(t => t.id !== templateId);
+
+  localStorage.setItem(MAPPING_TEMPLATES_KEY, JSON.stringify(filteredTemplates));
+};
+
 // Team member functions
 export const initializeTeamMembers = (): Record<string, TeamMember> => {
   if (typeof window === 'undefined') {
@@ -346,7 +487,7 @@ export const initializeTeamMembers = (): Record<string, TeamMember> => {
   }
 
   const storedData = localStorage.getItem(TEAM_MEMBERS_KEY);
-  
+
   if (!storedData) {
     localStorage.setItem(TEAM_MEMBERS_KEY, JSON.stringify({}));
     return {};
@@ -366,20 +507,20 @@ export const createTeamMember = (
 ): { teamMembers: Record<string, TeamMember>; newTeamMember: TeamMember } => {
   const timestamp = Date.now();
   const id = uuidv4();
-  
+
   const newTeamMember: TeamMember = {
     ...teamMember,
     id,
     createdAt: timestamp,
   };
-  
+
   const updatedTeamMembers = {
     ...currentTeamMembers,
     [id]: newTeamMember,
   };
-  
+
   saveTeamMembers(updatedTeamMembers);
-  
+
   return { teamMembers: updatedTeamMembers, newTeamMember };
 };
 
@@ -391,9 +532,9 @@ export const updateTeamMember = (
     ...currentTeamMembers,
     [updatedTeamMember.id]: updatedTeamMember,
   };
-  
+
   saveTeamMembers(newTeamMembers);
-  
+
   return { teamMembers: newTeamMembers };
 };
 
@@ -403,10 +544,10 @@ export const deleteTeamMember = (
   currentLeads: Record<string, Lead>
 ): { teamMembers: Record<string, TeamMember>; leads: Record<string, Lead> } => {
   const { [teamMemberId]: omitted, ...remainingTeamMembers } = currentTeamMembers; // eslint-disable-line @typescript-eslint/no-unused-vars
-  
+
   // Update any leads assigned to this team member
   const updatedLeads: Record<string, Lead> = {};
-  
+
   Object.values(currentLeads).forEach(lead => {
     if (lead.assignedTo === teamMemberId) {
       updatedLeads[lead.id] = { ...lead, assignedTo: undefined };
@@ -414,9 +555,9 @@ export const deleteTeamMember = (
       updatedLeads[lead.id] = lead;
     }
   });
-  
+
   saveTeamMembers(remainingTeamMembers);
   saveToStorage(initializeStorage().board, updatedLeads);
-  
+
   return { teamMembers: remainingTeamMembers, leads: updatedLeads };
 };

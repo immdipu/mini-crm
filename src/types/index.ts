@@ -50,3 +50,30 @@ export interface ImportedLead {
   leadSource?: LeadSource;
   assignedTo?: string;
 }
+
+export interface FieldMapping {
+  sourceField: string;
+  targetField: string;
+  required: boolean;
+  dataType: 'string' | 'enum' | 'number' | 'boolean' | 'date';
+  defaultValue?: string | number | boolean;
+  enumValues?: string[];
+}
+
+export interface MappingTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  sourceType: 'csv' | 'json';
+  mappings: FieldMapping[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ImportConfig {
+  mappingTemplateId?: string;
+  customMapping?: FieldMapping[];
+  skipFirstRow?: boolean;
+  delimiter?: string;
+  dateFormat?: string;
+}

@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BoardColumn } from '@/components/board/BoardColumn';
 import { LeadForm } from '@/components/lead/LeadForm';
 import { ImportModal } from '@/components/board/ImportModal';
-import { Button } from '@/components/ui/Button';
 import { useBoard } from '@/context/BoardContext';
 import { Lead, Status } from '@/types';
 

@@ -1,0 +1,122 @@
+[
+  {
+    "fullName": "John Doe",
+    "companyName": "Acme Inc",
+    "priorityLevel": "high",
+    "additionalNotes": "Follow up next week",
+    "currentStatus": "new",
+    "emailAddress": "john.doe@acme.com",
+    "phoneNumber": "555-123-4567",
+    "acquisitionChannel": "website",
+    "lastContactDate": "2023-10-15",
+    "estimatedDealSize": "$5,000"
+  },
+  {
+    "fullName": "Jane Smith",
+    "companyName": "XYZ Corp",
+    "priorityLevel": "medium",
+    "additionalNotes": "Interested in product demo",
+    "currentStatus": "contacted",
+    "emailAddress": "jane.smith@xyz.com",
+    "phoneNumber": "555-987-6543",
+    "acquisitionChannel": "referral",
+    "lastContactDate": "2023-10-20",
+    "estimatedDealSize": "$10,000"
+  },
+  {
+    "fullName": "Michael Johnson",
+    "companyName": "ABC Solutions",
+    "priorityLevel": "low",
+    "additionalNotes": "Sent initial proposal",
+    "currentStatus": "qualified",
+    "emailAddress": "michael@abcsolutions.com",
+    "phoneNumber": "555-456-7890",
+    "acquisitionChannel": "social_media",
+    "lastContactDate": "2023-09-28",
+    "estimatedDealSize": "$3,500"
+  },
+  {
+    "fullName": "Sarah Williams",
+    "companyName": "Tech Innovators",
+    "priorityLevel": "medium",
+    "additionalNotes": "Needs pricing information",
+    "currentStatus": "new",
+    "emailAddress": "sarah@techinnovators.com",
+    "phoneNumber": "555-234-5678",
+    "acquisitionChannel": "email_campaign",
+    "lastContactDate": "2023-10-05",
+    "estimatedDealSize": "$7,500"
+  },
+  {
+    "fullName": "Robert Brown",
+    "companyName": "Global Systems",
+    "priorityLevel": "high",
+    "additionalNotes": "Decision pending next month",
+    "currentStatus": "qualified",
+    "emailAddress": "robert@globalsystems.com",
+    "phoneNumber": "555-876-5432",
+    "acquisitionChannel": "event",
+    "lastContactDate": "2023-09-15",
+    "estimatedDealSize": "$25,000"
+  },
+  {
+    "fullName": "Emily Davis",
+    "companyName": "Future Enterprises",
+    "priorityLevel": "low",
+    "additionalNotes": "Initial contact made",
+    "currentStatus": "contacted",
+    "emailAddress": "emily@futureenterprises.com",
+    "phoneNumber": "555-345-6789",
+    "acquisitionChannel": "website",
+    "lastContactDate": "2023-10-12",
+    "estimatedDealSize": "$5,000"
+  },
+  {
+    "fullName": "David Wilson",
+    "companyName": "Smart Solutions",
+    "priorityLevel": "medium",
+    "additionalNotes": "Requested follow-up call",
+    "currentStatus": "new",
+    "emailAddress": "david@smartsolutions.com",
+    "phoneNumber": "555-654-3210",
+    "acquisitionChannel": "referral",
+    "lastContactDate": "2023-10-18",
+    "estimatedDealSize": "$12,000"
+  },
+  {
+    "fullName": "Lisa Taylor",
+    "companyName": "Bright Ideas LLC",
+    "priorityLevel": "high",
+    "additionalNotes": "Very interested in our premium plan",
+    "currentStatus": "qualified",
+    "emailAddress": "lisa@brightideas.com",
+    "phoneNumber": "555-789-0123",
+    "acquisitionChannel": "social_media",
+    "lastContactDate": "2023-09-30",
+    "estimatedDealSize": "$15,000"
+  },
+  {
+    "fullName": "James Anderson",
+    "companyName": "Innovative Tech",
+    "priorityLevel": "medium",
+    "additionalNotes": "Sent product information",
+    "currentStatus": "contacted",
+    "emailAddress": "james@innovativetech.com",
+    "phoneNumber": "555-321-0987",
+    "acquisitionChannel": "email_campaign",
+    "lastContactDate": "2023-10-08",
+    "estimatedDealSize": "$8,000"
+  },
+  {
+    "fullName": "Jennifer Martinez",
+    "companyName": "Strategic Systems",
+    "priorityLevel": "low",
+    "additionalNotes": "Initial meeting scheduled",
+    "currentStatus": "new",
+    "emailAddress": "jennifer@strategicsystems.com",
+    "phoneNumber": "555-210-9876",
+    "acquisitionChannel": "event",
+    "lastContactDate": "2023-10-22",
+    "estimatedDealSize": "$6,500"
+  }
+]
