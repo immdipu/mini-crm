@@ -3,7 +3,6 @@ import { Board, Column, Lead, Status, ImportedLead } from '@/types';
 
 const STORAGE_KEY = 'mini-crm-data';
 
-// Initial board structure
 const initialColumns: Record<Status, Column> = {
   new: {
     id: 'new',
@@ -37,7 +36,6 @@ const initialBoard: Board = {
   columnOrder: ['new', 'contacted', 'qualified', 'won', 'lost'],
 };
 
-// Initialize local storage with default board if it doesn't exist
 export const initializeStorage = (): { board: Board; leads: Record<string, Lead> } => {
   if (typeof window === 'undefined') {
     return { board: initialBoard, leads: {} };
@@ -54,7 +52,6 @@ export const initializeStorage = (): { board: Board; leads: Record<string, Lead>
   return JSON.parse(storedData);
 };
 
-// Save data to local storage
 export const saveToStorage = (board: Board, leads: Record<string, Lead>): void => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ board, leads }));
@@ -76,13 +73,13 @@ export const createLead = (
     updatedAt: timestamp,
   };
   
-  // Add lead to leads record
+
   const updatedLeads = {
     ...currentLeads,
     [id]: newLead,
   };
   
-  // Add lead ID to the appropriate column
+
   const updatedColumns = {
     ...currentBoard.columns,
     [lead.status]: {
@@ -110,7 +107,7 @@ export const updateLead = (
   const oldLead = currentLeads[updatedLead.id];
   const timestamp = Date.now();
   
-  // Update lead in leads record
+
   const newLeads = {
     ...currentLeads,
     [updatedLead.id]: {
@@ -119,15 +116,12 @@ export const updateLead = (
     },
   };
   
-  // If status has changed, update board columns
+
   let newBoard = { ...currentBoard };
   
   if (oldLead.status !== updatedLead.status) {
-    // Remove from old column
     const oldColumn = { ...currentBoard.columns[oldLead.status] };
     const newOldLeadIds = oldColumn.leadIds.filter(id => id !== updatedLead.id);
-    
-    // Add to new column
     const newColumn = { ...currentBoard.columns[updatedLead.status] };
     const newLeadIds = [...newColumn.leadIds, updatedLead.id];
     
@@ -152,18 +146,14 @@ export const updateLead = (
   return { board: newBoard, leads: newLeads };
 };
 
-// Delete a lead
+
 export const deleteLead = (
   leadId: string,
   currentBoard: Board,
   currentLeads: Record<string, Lead>
 ): { board: Board; leads: Record<string, Lead> } => {
   const lead = currentLeads[leadId];
-  
-  // Remove lead from leads record
   const { [leadId]: removedLead, ...remainingLeads } = currentLeads;
-  
-  // Remove lead ID from its column
   const updatedColumns = {
     ...currentBoard.columns,
     [lead.status]: {
@@ -182,7 +172,6 @@ export const deleteLead = (
   return { board: updatedBoard, leads: remainingLeads };
 };
 
-// Reorder leads within a column
 export const reorderLeadsInColumn = (
   columnId: Status,
   sourceIndex: number,
@@ -213,7 +202,6 @@ export const reorderLeadsInColumn = (
   return { board: updatedBoard, leads: currentLeads };
 };
 
-// Move a lead from one column to another
 export const moveLeadBetweenColumns = (
   sourceColumnId: Status,
   destinationColumnId: Status,
@@ -223,17 +211,13 @@ export const moveLeadBetweenColumns = (
   currentBoard: Board,
   currentLeads: Record<string, Lead>
 ): { board: Board; leads: Record<string, Lead> } => {
-  // Remove from source column
   const sourceColumn = currentBoard.columns[sourceColumnId];
   const sourceLeadIds = Array.from(sourceColumn.leadIds);
   sourceLeadIds.splice(sourceIndex, 1);
-  
-  // Add to destination column
   const destinationColumn = currentBoard.columns[destinationColumnId];
   const destinationLeadIds = Array.from(destinationColumn.leadIds);
   destinationLeadIds.splice(destinationIndex, 0, leadId);
   
-  // Update lead status
   const updatedLeads = {
     ...currentLeads,
     [leadId]: {
@@ -265,7 +249,6 @@ export const moveLeadBetweenColumns = (
   return { board: updatedBoard, leads: updatedLeads };
 };
 
-// Import leads from CSV or JSON
 export const importLeads = (
   importedLeads: ImportedLead[],
   currentBoard: Board,
@@ -277,7 +260,7 @@ export const importLeads = (
   importedLeads.forEach(importedLead => {
     const timestamp = Date.now();
     const id = uuidv4();
-    const status = importedLead.status || 'new'; // Default to 'new' if status not provided
+    const status = importedLead.status || 'new';
     
     const newLead: Lead = {
       id,
@@ -290,13 +273,11 @@ export const importLeads = (
       updatedAt: timestamp,
     };
     
-    // Add lead to leads record
     updatedLeads = {
       ...updatedLeads,
       [id]: newLead,
     };
     
-    // Add lead ID to appropriate column
     updatedBoard = {
       ...updatedBoard,
       columns: {
@@ -314,7 +295,7 @@ export const importLeads = (
   return { board: updatedBoard, leads: updatedLeads };
 };
 
-// Parse CSV
+
 export const parseCSV = (csv: string): ImportedLead[] => {
   const lines = csv.split('\n');
   const headers = lines[0].split(',').map(header => header.trim());
@@ -335,7 +316,6 @@ export const parseCSV = (csv: string): ImportedLead[] => {
   });
 };
 
-// Parse JSON
 export const parseJSON = (json: string): ImportedLead[] => {
   try {
     const parsed = JSON.parse(json);
