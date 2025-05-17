@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BoardColumn } from '@/components/board/BoardColumn';
@@ -12,13 +11,12 @@ import { Lead, Status } from '@/types';
 export const Board = () => {
   const { board, leads, isLoading, addLead, editLead, removeLead, reorderLeads, moveLead } = useBoard();
   
-  // State for modals
   const [isLeadFormOpen, setIsLeadFormOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [leadBeingEdited, setLeadBeingEdited] = useState<Lead | undefined>(undefined);
   const [selectedStatus, setSelectedStatus] = useState<Status>('new');
   
-  // Handle moving cards within or between columns
+
   const handleMoveCard = useCallback(
     (dragIndex: number, hoverIndex: number, sourceColumnId: Status, targetColumnId: Status) => {
       if (sourceColumnId === targetColumnId) {
@@ -34,7 +32,7 @@ export const Board = () => {
     [board, reorderLeads, moveLead]
   );
   
-  // Handle dropping cards on columns
+
   const handleDropCard = useCallback(
     (leadId: string, sourceColumnId: Status, targetColumnId: Status) => {
       // Only handle the case when the source and target columns are different
@@ -48,7 +46,7 @@ export const Board = () => {
     [board, moveLead]
   );
   
-  // Handle adding a new lead
+
   const handleAddLead = (status?: Status) => {
     if (status) {
       setSelectedStatus(status);
@@ -57,19 +55,16 @@ export const Board = () => {
     setIsLeadFormOpen(true);
   };
   
-  // Handle editing a lead
+
   const handleEditLead = (lead: Lead) => {
     setLeadBeingEdited(lead);
     setIsLeadFormOpen(true);
   };
   
-  // Handle lead form submission
   const handleLeadFormSubmit = (formData: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'> | Lead) => {
     if ('id' in formData) {
-      // Edit existing lead
       editLead(formData as Lead);
     } else {
-      // Add new lead
       addLead({
         ...(formData as Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>),
         status: selectedStatus,
