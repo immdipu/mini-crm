@@ -285,7 +285,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
         >
-          <Button type="button" variant="outline" onClick={onClose} size="sm" className="text-xs">
+          <Button type="button" variant="ghost" onClick={onClose} size="sm" className="text-xs">
             Cancel
           </Button>
           <Button type="submit" size="sm" className="text-xs">
