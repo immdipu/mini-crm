@@ -32,10 +32,9 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
     }
   };
   
-  // Format date
+
   const formatDate = (timestamp: number | undefined) => {
     try {
-      // Validate timestamp is a valid number and not NaN
       if (typeof timestamp !== 'number' || isNaN(timestamp)) {
         return 'No date';
       }
