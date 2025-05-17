@@ -34,7 +34,7 @@ export const BoardColumn = (({
   const columnLeads = useMemo(() => {
     return leadIds
       .map(leadId => leads[leadId])
-      .filter(lead => lead !== undefined); // Filter out undefined leads
+      .filter(lead => lead !== undefined); 
   }, [leadIds, leads]);
 
   const handleDrop = (item: DragItem) => {
@@ -58,12 +58,12 @@ export const BoardColumn = (({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.2 }}
-      className={`board-column flex flex-col w-[280px] min-w-[280px] max-w-[280px] rounded-lg bg-white shadow-sm border border-gray-100 ${
+      className={`board-column flex flex-col w-[280px] min-w-[280px] max-w-[280px] rounded-none bg-white shadow-none border border-gray-100 ${
         isOver ? 'bg-gray-50 border-blue-200' : ''
       }`}
       data-column-id={id}
     >
-      <div className="p-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+      <div className="p-3 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium text-gray-700">{title}</h3>

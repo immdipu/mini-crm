@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lead, Status, TeamMember } from '@/types';
-
 import { Card } from '@/components/ui/card';
 import { useLeadDrag, useLeadDrop } from '@/hooks/useLeadDragDrop';
 import { initializeTeamMembers } from '@/utils/storage';
@@ -109,7 +108,7 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
       onMouseLeave={() => setShowActions(false)}
     >
       <Card className={`p-0  rounded-md border-none bg-white cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'} ${showDetails ? 'ring-1 ring-blue-100' : ''} relative overflow-hidden`}>
-        {/* Priority vertical bar */}
+       
         <div className={`absolute left-0 top-0 bottom-0 w-1 ${
           lead.priority === 'high' ? 'bg-red-500' :
           lead.priority === 'medium' ? 'bg-orange-500' :
@@ -117,7 +116,7 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
         }`}></div>
 
         <div className="p-3 pl-4">
-          {/* Basic info - Always visible */}
+
           <div className="flex items-start justify-between">
             <div className="mr-2">
               <h3 className="text-sm font-medium text-gray-900 mb-1 truncate max-w-[170px]">
@@ -173,7 +172,6 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
             </div>
           </div>
 
-          {/* Expandable Details Section - Above the arrow */}
           <AnimatePresence>
             {showDetails && (
               <motion.div
@@ -187,7 +185,7 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
                 }}
                 className="overflow-hidden mt-3"
               >
-                {/* Contact info */}
+
                 <div className="space-y-2">
                   {lead.email && (
                     <div className="flex items-center text-xs text-gray-600 gap-1">
@@ -231,8 +229,6 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard }: 
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* Arrow button - Always at the bottom */}
           <div
             className="mt-3 -mb-1 flex justify-center cursor-pointer"
             onClick={() => setShowDetails(!showDetails)}
