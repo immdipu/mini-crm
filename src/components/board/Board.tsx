@@ -72,7 +72,6 @@ export const Board = () => {
     }
   };
   
-  // Show loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -91,7 +90,6 @@ export const Board = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      {/* Header */}
       <motion.header 
         className="bg-white border-b border-gray-200 px-5 py-2.5 flex items-center justify-between sticky top-0 z-10"
         initial={{ opacity: 0, y: -10 }}
@@ -116,8 +114,6 @@ export const Board = () => {
           </Button>
         </div>
       </motion.header>
-      
-      {/* Board content */}
       <motion.div 
         className="flex-1 overflow-x-auto p-5 bg-[#f8f9fa] h-[calc(100vh-60px)]"
         initial={{ opacity: 0 }}
@@ -147,15 +143,12 @@ export const Board = () => {
           </AnimatePresence>
         </div>
       </motion.div>
-      
-      {/* Modals */}
       <LeadForm
         isOpen={isLeadFormOpen}
         onClose={() => setIsLeadFormOpen(false)}
         onSubmit={handleLeadFormSubmit}
         initialData={leadBeingEdited}
       />
-      
       <ImportModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
