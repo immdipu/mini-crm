@@ -10,6 +10,7 @@
 !.yarn/releases
 !.yarn/versions
 .cursor
+.cursorrules
 
 /.github/copilot-instructions.md
 
