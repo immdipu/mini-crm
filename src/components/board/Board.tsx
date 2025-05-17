@@ -29,7 +29,7 @@ export const Board = () => {
   // Check if the screen is mobile size
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint in Tailwind
+      setIsMobile(window.innerWidth < 1024); // Updated from 768px to 1024px (lg breakpoint in Tailwind)
     };
 
     // Check on initial load
@@ -237,29 +237,31 @@ export const Board = () => {
   );
 
   const renderDesktopView = () => (
-    <div className="flex justify-center gap-5 pb-4 ">
-      <AnimatePresence>
-        {board.columnOrder.map((columnId) => {
-          const column = board.columns[columnId];
+    <div className=" pb-2">
+      <div className="flex justify-center min-w-max gap-5 pb-4">
+        <AnimatePresence>
+          {board.columnOrder.map((columnId) => {
+            const column = board.columns[columnId];
 
-          return (
-            <BoardColumn
-              key={column.id}
-              id={column.id}
-              title={column.title}
-              leadIds={column.leadIds}
-              leads={leads}
-              onLeadEdit={handleEditLead}
-              onLeadDelete={removeLead}
-              onLeadAdd={handleAddLead}
-              moveCard={handleMoveCard}
-              dropCard={handleDropCard}
-              onStatusChange={handleStatusChange}
-              onPriorityChange={handlePriorityChange}
-            />
-          );
-        })}
-      </AnimatePresence>
+            return (
+              <BoardColumn
+                key={column.id}
+                id={column.id}
+                title={column.title}
+                leadIds={column.leadIds}
+                leads={leads}
+                onLeadEdit={handleEditLead}
+                onLeadDelete={removeLead}
+                onLeadAdd={handleAddLead}
+                moveCard={handleMoveCard}
+                dropCard={handleDropCard}
+                onStatusChange={handleStatusChange}
+                onPriorityChange={handlePriorityChange}
+              />
+            );
+          })}
+        </AnimatePresence>
+      </div>
     </div>
   );
 
