@@ -57,13 +57,13 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
                   <h4 className="font-medium mb-2">Select import format:</h4>
                   <div className="flex gap-3">
                     <Button
-                      variant={importType === 'csv' ? 'primary' : 'outline'}
+                      variant={importType === 'csv' ? 'default' : 'outline'}
                       onClick={() => setImportType('csv')}
                     >
                       CSV
                     </Button>
                     <Button
-                      variant={importType === 'json' ? 'primary' : 'outline'}
+                      variant={importType === 'json' ? 'default' : 'outline'}
                       onClick={() => setImportType('json')}
                     >
                       JSON

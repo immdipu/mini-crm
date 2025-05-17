@@ -4,7 +4,6 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { Board, Lead, Status, Priority, ImportedLead } from '@/types';
 import { 
   initializeStorage, 
-  saveToStorage, 
   createLead, 
   updateLead, 
   deleteLead, 
@@ -41,7 +40,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
   const [board, setBoard] = useState<Board | null>(null);
   const [leads, setLeads] = useState<Record<string, Lead>>({});
 
-  // Initialize from localStorage when the component mounts
   useEffect(() => {
     const storedData = initializeStorage();
     setBoard(storedData.board);
@@ -49,7 +47,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(false);
   }, []);
 
-  // Add a new lead
   const addLead = (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!board) return;
     
@@ -58,7 +55,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     setLeads(result.leads);
   };
 
-  // Edit an existing lead
+
   const editLead = (lead: Lead) => {
     if (!board) return;
     
@@ -67,7 +64,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     setLeads(result.leads);
   };
 
-  // Remove a lead
+
   const removeLead = (leadId: string) => {
     if (!board) return;
     
@@ -76,7 +73,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     setLeads(result.leads);
   };
 
-  // Reorder leads within a column
+
   const reorderLeads = (columnId: Status, sourceIndex: number, destinationIndex: number) => {
     if (!board) return;
     
@@ -85,7 +82,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     setLeads(result.leads);
   };
 
-  // Move a lead from one column to another
+
   const moveLead = (
     sourceColumnId: Status,
     destinationColumnId: Status,
@@ -109,7 +106,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     setLeads(result.leads);
   };
 
-  // Import leads from CSV
+
   const importLeadsFromCSV = (csv: string) => {
     if (!board) return;
     
@@ -121,7 +118,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     setLeads(result.leads);
   };
 
-  // Import leads from JSON
+
   const importLeadsFromJSON = (json: string) => {
     if (!board) return;
     
@@ -133,7 +130,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     setLeads(result.leads);
   };
 
-  // Return loading state if board is not yet initialized
   if (!board) {
     return (
       <BoardContext.Provider
