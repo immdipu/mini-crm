@@ -60,7 +60,7 @@ export const Navigation = () => {
   return (
     <>
       <motion.header
-        className="bg-gray-100 border-b border-gray-200 px-5  h-[60px] flex items-center justify-between sticky top-0 z-10"
+        className="bg-gray-100 border-b border-gray-200 px-5 h-[60px] flex items-center justify-between sticky top-0 z-20"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}

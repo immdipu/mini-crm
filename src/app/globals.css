@@ -127,7 +127,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-medium tracking-tight;
   }
@@ -171,8 +171,6 @@
 
 /* Drag and Drop Styling */
 .board-column {
-  min-height: calc(100vh - 120px);
-  height: 100%;
   transition: border-color 0.1s ease-out, background-color 0.1s ease-out;
 }
 

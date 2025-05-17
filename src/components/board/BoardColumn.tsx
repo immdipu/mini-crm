@@ -34,7 +34,7 @@ export const BoardColumn = (({
   const columnLeads = useMemo(() => {
     return leadIds
       .map(leadId => leads[leadId])
-      .filter(lead => lead !== undefined); 
+      .filter(lead => lead !== undefined);
   }, [leadIds, leads]);
 
   const handleDrop = (item: DragItem) => {
@@ -63,7 +63,7 @@ export const BoardColumn = (({
       }`}
       data-column-id={id}
     >
-      <div className="p-3 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+      <div className="p-3 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white sticky top-[60px] z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium text-gray-700">{title}</h3>
@@ -84,7 +84,7 @@ export const BoardColumn = (({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-3 min-h-[calc(100vh-200px)] scrollbar-thin">
+      <div className="p-2 flex flex-col gap-3">
         <AnimatePresence>
           {columnLeads.map((lead, index) => (
             <LeadCard

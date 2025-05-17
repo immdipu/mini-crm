@@ -84,15 +84,14 @@ export const Board = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
-
+    <div className="flex flex-col">
       <motion.div
-        className="flex-1 overflow-x-auto p-5  bg-[#f8f9fa] h-[calc(100vh-60px)] scrollbar-thin"
+        className="p-5 bg-[#f8f9fa]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <div className="flex gap-5 h-full min-h-[calc(100vh-150px)] pb-4">
+        <div className="flex gap-5 pb-4">
           <AnimatePresence>
             {board.columnOrder.map((columnId) => {
               const column = board.columns[columnId];

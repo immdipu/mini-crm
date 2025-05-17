@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={geistSans.variable}>
       <body
-        className="font-sans antialiased text-gray-900 bg-[#f8f9fa] overflow-hidden"
+        className="font-sans antialiased text-gray-900 bg-[#f8f9fa]"
       >
         <BoardProvider>
           <Navigation/>
