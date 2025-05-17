@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { Board } from '@/components/board/Board';
 import { BoardProvider } from '@/context/BoardContext';
+import DndContext from '@/context/DndContext';
 
 export const metadata: Metadata = {
   title: 'Mini CRM Board | Manage Your Sales Pipeline',
@@ -12,7 +13,9 @@ export default function Home() {
   return (
     <main className="min-h-screen h-screen flex flex-col overflow-hidden bg-[#f8f9fa]">
       <BoardProvider>
-        <Board />
+        <DndContext>
+          <Board />
+        </DndContext>
       </BoardProvider>
     </main>
   );
