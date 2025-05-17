@@ -15,7 +15,7 @@ export default function IntegrationPage() {
                     <div className="bg-white rounded-lg shadow-sm p-6 text-center">
                         <h2 className="text-xl font-medium mb-4">Coming Soon</h2>
                         <p className="text-gray-500 text-sm mb-8">
-                            The Integration Hub is under development. Soon you'll be able to connect your CRM
+                            The Integration Hub is under development. Soon you&apos;ll be able to connect your CRM
                             with various third-party services.
                         </p>
                         <div className="grid grid-cols-3 gap-4 mt-8">

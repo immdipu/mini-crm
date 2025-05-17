@@ -353,7 +353,7 @@ export const parseJSON = (json: string): ImportedLead[] => {
 
 // Apply field mappings to imported data
 export const applyFieldMappings = (
-  data: Record<string, any>[],
+  data: Record<string, unknown>[],
   mappings: FieldMapping[]
 ): ImportedLead[] => {
   return data.map(row => {
@@ -366,19 +366,24 @@ export const applyFieldMappings = (
         // Handle different data types
         if (mapping.dataType === 'enum' && mapping.enumValues) {
           // For enum fields, check if the value is in the allowed values
-          if (mapping.enumValues.includes(value)) {
-            // @ts-ignore - we know this is a valid field
-            mappedLead[mapping.targetField] = value;
+          const valueStr = String(value);
+          if (mapping.enumValues.includes(valueStr)) {
+            // We know this is a valid field
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            mappedLead[mapping.targetField as keyof ImportedLead] = valueStr as any;
           } else if (mapping.defaultValue) {
-            // @ts-ignore - we know this is a valid field
-            mappedLead[mapping.targetField] = mapping.defaultValue;
+            // We know this is a valid field
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            mappedLead[mapping.targetField as keyof ImportedLead] = mapping.defaultValue as any;
           }
         } else if (value !== undefined && value !== null) {
-          // @ts-ignore - we know this is a valid field
-          mappedLead[mapping.targetField] = value;
+          // We know this is a valid field
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          mappedLead[mapping.targetField as keyof ImportedLead] = value as any;
         } else if (mapping.defaultValue !== undefined) {
-          // @ts-ignore - we know this is a valid field
-          mappedLead[mapping.targetField] = mapping.defaultValue;
+          // We know this is a valid field
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          mappedLead[mapping.targetField as keyof ImportedLead] = mapping.defaultValue as any;
         }
       }
     });
@@ -404,7 +409,7 @@ export const parseCSVWithMappings = (
     const headers = lines[0].split(',').map(header => header.trim());
     const rows = lines.slice(1).filter(line => line.trim()).map(line => {
       const values = line.split(',').map(value => value.trim());
-      const row: Record<string, any> = {};
+      const row: Record<string, unknown> = {};
 
       headers.forEach((header, index) => {
         if (index < values.length) {

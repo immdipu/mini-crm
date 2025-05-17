@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -21,34 +21,36 @@ export const Tooltip: React.FC<TooltipProps> = ({
   position = 'top',
   className = '',
   contentClassName = '',
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   delay = 300,
   trigger = 'hover',
   maxWidth = 250,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  // coords state is used in the useEffect but not directly in the render
+  const [, setCoords] = useState({ x: 0, y: 0 });
   const triggerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  
+
   const handleMouseEnter = () => {
     if (trigger === 'hover') {
       setIsVisible(true);
     }
   };
-  
+
   const handleMouseLeave = () => {
     if (trigger === 'hover') {
       setIsVisible(false);
     }
   };
-  
+
   const handleClick = () => {
     if (trigger === 'click') {
       setIsVisible(!isVisible);
     }
   };
-  
-  const handleClickOutside = (e: MouseEvent) => {
+
+  const handleClickOutside = useCallback((e: MouseEvent) => {
     if (
       trigger === 'click' &&
       isVisible &&
@@ -59,12 +61,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
     ) {
       setIsVisible(false);
     }
-  };
-  
+  }, [trigger, isVisible]);
+
   useEffect(() => {
     if (isVisible && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
-      
+
       switch (position) {
         case 'top':
           setCoords({
@@ -93,14 +95,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
       }
     }
   }, [isVisible, position]);
-  
+
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isVisible]);
-  
+  }, [isVisible, handleClickOutside]);
+
   const getTooltipStyles = () => {
     switch (position) {
       case 'top':
@@ -135,7 +137,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
         return {};
     }
   };
-  
+
   return (
     <div
       ref={triggerRef}
@@ -145,7 +147,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
       onClick={handleClick}
     >
       {children}
-      
+
       <AnimatePresence>
         {isVisible && (
           <motion.div

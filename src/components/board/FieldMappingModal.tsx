@@ -7,19 +7,13 @@ import { FieldMapping } from '@/components/ui/FieldMapping';
 import { FieldMapping as FieldMappingType } from '@/types';
 import { FileText } from 'lucide-react';
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-
 interface FieldMappingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: (mappings: FieldMappingType[]) => void;
   sourceFields: string[];
   sourceType: 'csv' | 'json';
-  previewData?: Record<string, any>[];
+  previewData?: Record<string, unknown>[];
 }
 
 // Define the target fields structure
@@ -57,9 +51,7 @@ export const FieldMappingModal = ({
   isOpen,
   onClose,
   onComplete,
-  sourceFields,
-  sourceType,
-  previewData
+  sourceFields
 }: FieldMappingModalProps) => {
   const [mappings, setMappings] = useState<FieldMappingType[]>([]);
 

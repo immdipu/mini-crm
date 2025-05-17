@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FieldMapping as FieldMappingType } from '@/types';
-import { Input } from './Input';
 import { Button } from './Button';
 import {
   Select,
@@ -63,8 +62,8 @@ export const FieldMapping: React.FC<FieldMappingProps> = ({
     setLocalMappings(mappings);
   }, [mappings]);
 
-  // Validate mappings
-  const validateMappings = () => {
+  // Validate and update validation errors
+  useEffect(() => {
     const errors: Record<string, string> = {};
 
     // Check for required target fields
@@ -102,11 +101,10 @@ export const FieldMapping: React.FC<FieldMappingProps> = ({
     });
 
     setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  }, [localMappings, targetFields]);
 
   // Handle mapping change
-  const handleMappingChange = (index: number, field: keyof FieldMappingType, value: any) => {
+  const handleMappingChange = (index: number, field: keyof FieldMappingType, value: string) => {
     const newMappings = [...localMappings];
 
     if (field === 'targetField') {
@@ -122,8 +120,11 @@ export const FieldMapping: React.FC<FieldMappingProps> = ({
         };
       }
     } else {
-      // @ts-ignore - we know the field exists
-      newMappings[index][field] = value;
+      // We know the field exists and is a string
+      newMappings[index] = {
+        ...newMappings[index],
+        [field]: value
+      };
     }
 
     setLocalMappings(newMappings);

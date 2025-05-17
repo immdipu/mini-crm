@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ModalDialog } from '@/components/ui/ModalDialog';
 import { FileImport } from '@/components/ui/FileImport';
 import { Button } from '@/components/ui/Button';
@@ -25,10 +25,11 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoadingSample, setIsLoadingSample] = useState(false);
   const [fileContent, setFileContent] = useState<string>('');
-  const [fileName, setFileName] = useState<string>('');
+  // fileName is set but used indirectly for determining file type
+  const [, setFileName] = useState<string>('');
   const [showMappingModal, setShowMappingModal] = useState(false);
   const [sourceFields, setSourceFields] = useState<string[]>([]);
-  const [previewData, setPreviewData] = useState<Record<string, any>[]>([]);
+  const [previewData, setPreviewData] = useState<Record<string, unknown>[]>([]);
   const [isAnalyzingFile, setIsAnalyzingFile] = useState(false);
 
   const handleFileImport = (content: string, fileName: string) => {
@@ -55,12 +56,12 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
         // Create preview data
         const lines = content.split('\n');
         if (lines.length > 1) {
-          const previewRows: Record<string, any>[] = [];
+          const previewRows: Record<string, unknown>[] = [];
 
           // Get up to 3 rows for preview
           for (let i = 1; i < Math.min(lines.length, 4); i++) {
             const values = lines[i].split(',').map(v => v.trim());
-            const row: Record<string, any> = {};
+            const row: Record<string, unknown> = {};
 
             headers.forEach((header, index) => {
               if (index < values.length) {
@@ -156,12 +157,12 @@ export const ImportModal = ({ isOpen, onClose }: ImportModalProps) => {
         // Create preview data
         const lines = content.split('\n');
         if (lines.length > 1) {
-          const previewRows: Record<string, any>[] = [];
+          const previewRows: Record<string, unknown>[] = [];
 
           // Get up to 3 rows for preview
           for (let i = 1; i < Math.min(lines.length, 4); i++) {
             const values = lines[i].split(',').map(v => v.trim());
-            const row: Record<string, any> = {};
+            const row: Record<string, unknown> = {};
 
             headers.forEach((header, index) => {
               if (index < values.length) {

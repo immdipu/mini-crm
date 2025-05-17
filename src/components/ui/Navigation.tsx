@@ -18,7 +18,7 @@ export const Navigation = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isLeadFormOpen, setIsLeadFormOpen] = useState(false);
   const [leadBeingEdited, setLeadBeingEdited] = useState<Lead | undefined>(undefined);
-  const [selectedStatus, setSelectedStatus] = useState<Status>('new');
+  const [selectedStatus] = useState<Status>('new');
 
   const handleAddLead = () => {
     setLeadBeingEdited(undefined);
