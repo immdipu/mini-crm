@@ -31,6 +31,7 @@ export const Navigation = () => {
   ];
 
   return (
+    
     <div className="flex justify-center">
       <div className="backdrop-blur-md bg-white/80 rounded-full shadow-md px-1 py-1 flex items-center gap-1 border border-gray-100">
         {links.map((link) => (

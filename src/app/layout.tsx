@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
+import { Navigation } from "@/components/ui/Navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body
         className="font-sans antialiased text-gray-900 bg-[#f8f9fa] overflow-hidden"
       >
+        <Navigation/>
         {children}
       </body>
     </html>
