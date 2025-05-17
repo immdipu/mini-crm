@@ -60,6 +60,42 @@ const getStatusAccentColor = (status: Status): string => {
   }
 };
 
+// Status badge color mapping for count badges
+const getStatusBadgeColors = (status: Status): string => {
+  switch (status) {
+    case 'new':
+      return 'bg-blue-100 text-blue-700';
+    case 'contacted':
+      return 'bg-purple-100 text-purple-700';
+    case 'qualified':
+      return 'bg-indigo-100 text-indigo-700';
+    case 'won':
+      return 'bg-green-100 text-green-700';
+    case 'lost':
+      return 'bg-red-100 text-red-700';
+    default:
+      return 'bg-gray-100 text-gray-700';
+  }
+};
+
+// Status text color mapping for titles
+const getStatusTextColor = (status: Status): string => {
+  switch (status) {
+    case 'new':
+      return 'text-blue-700';
+    case 'contacted':
+      return 'text-purple-700';
+    case 'qualified':
+      return 'text-indigo-700';
+    case 'won':
+      return 'text-green-700';
+    case 'lost':
+      return 'text-red-700';
+    default:
+      return 'text-gray-700';
+  }
+};
+
 interface BoardColumnProps {
   id: Status;
   title: string;
@@ -120,8 +156,8 @@ export const BoardColumn = (({
       <div className={`p-3 border-b border-gray-200 bg-gradient-to-r ${getStatusColor(id)} sticky top-[60px] z-10`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium text-gray-700">{title}</h3>
-            <span className="text-xs bg-white bg-opacity-70 text-gray-500 font-medium px-1.5 py-0.5 rounded-full">
+            <h3 className={`text-sm font-medium ${getStatusTextColor(id)}`}>{title}</h3>
+            <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${getStatusBadgeColors(id)}`}>
               {leadsCount}
             </span>
           </div>
@@ -129,9 +165,9 @@ export const BoardColumn = (({
             variant="ghost"
             size="icon"
             onClick={() => onLeadAdd(id)}
-            className="w-6 h-6 rounded-full hover:bg-white/70 transition-colors"
+            className={`w-6 h-6 rounded-full hover:bg-white/70 transition-colors group ${getStatusTextColor(id).replace('text', 'hover:text')}`}
           >
-            <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className={`w-3 h-3 text-gray-500 ${getStatusTextColor(id).replace('text', 'group-hover:text')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
           </Button>
