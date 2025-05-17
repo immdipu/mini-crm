@@ -9,6 +9,9 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+.cursor
+
+/.github/copilot-instructions.md
 
 # testing
 /coverage
