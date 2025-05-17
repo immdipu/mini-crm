@@ -6,7 +6,7 @@ import { ModalDialog } from '@/components/ui/ModalDialog';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -14,11 +14,11 @@ import {
   SelectValue
 } from '@/components/ui/Select';
 import { Lead, TeamMember, LeadSource } from '@/types';
-import { 
-  User, 
-  Building2, 
-  Flag, 
-  ClipboardList, 
+import {
+  User,
+  Building2,
+  Flag,
+  ClipboardList,
   BarChart3,
   Phone,
   AtSign,
@@ -36,17 +36,17 @@ interface LeadFormProps {
 
 export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormProps) => {
   const [formData, setFormData] = useState<Partial<Lead>>({
-    name: initialData?.name || '',
-    company: initialData?.company || '',
-    email: initialData?.email || '',
-    phone: initialData?.phone || '',
-    priority: initialData?.priority || 'medium',
-    notes: initialData?.notes || '',
-    status: initialData?.status || 'new',
-    leadSource: initialData?.leadSource || undefined,
-    assignedTo: initialData?.assignedTo || undefined,
+    name: '',
+    company: '',
+    email: '',
+    phone: '',
+    priority: 'medium',
+    notes: '',
+    status: 'new',
+    leadSource: undefined,
+    assignedTo: undefined,
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [teamMembers, setTeamMembers] = useState<Record<string, TeamMember>>({});
@@ -56,21 +56,57 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
     setTeamMembers(loadedMembers);
   }, []);
 
+  // Update form data when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || '',
+        company: initialData.company || '',
+        email: initialData.email || '',
+        phone: initialData.phone || '',
+        priority: initialData.priority || 'medium',
+        notes: initialData.notes || '',
+        status: initialData.status || 'new',
+        leadSource: initialData.leadSource || undefined,
+        assignedTo: initialData.assignedTo || undefined,
+      });
+      // Reset touched state when initialData changes
+      setTouched({});
+      // Reset errors
+      setErrors({});
+    } else {
+      // Reset form when adding a new lead
+      setFormData({
+        name: '',
+        company: '',
+        email: '',
+        phone: '',
+        priority: 'medium',
+        notes: '',
+        status: 'new',
+        leadSource: undefined,
+        assignedTo: undefined,
+      });
+      setTouched({});
+      setErrors({});
+    }
+  }, [initialData]);
+
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name?.trim()) {
       newErrors.name = 'Name is required';
     }
-    
+
     if (!formData.company?.trim()) {
       newErrors.company = 'Company is required';
     }
-    
+
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -79,16 +115,16 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setTouched(prev => ({ ...prev, [name]: true }));
-    
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
-  
+
   const handleSelectChange = (name: string, value: string | undefined) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     setTouched(prev => ({ ...prev, [name]: true }));
-    
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -96,16 +132,16 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Mark all fields as touched when submitting
     const allTouched = Object.keys(formData).reduce((acc, key) => {
       acc[key] = true;
       return acc;
     }, {} as Record<string, boolean>);
     setTouched(allTouched);
-    
+
     if (!validate()) return;
-    
+
     if (initialData) {
       onSubmit({
         ...initialData,
@@ -114,7 +150,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
     } else {
       onSubmit(formData as Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>);
     }
-    
+
     onClose();
   };
 
@@ -154,8 +190,13 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
     return statusOptions.find(option => option.value === status)?.color || '';
   };
 
+  // Handle modal close
+  const handleClose = () => {
+    onClose();
+  };
+
   return (
-    <ModalDialog isOpen={isOpen} onClose={onClose} title={initialData ? 'Edit Lead' : 'Add New Lead'}>
+    <ModalDialog isOpen={isOpen} onClose={handleClose} title={initialData ? 'Edit Lead' : 'Add New Lead'}>
       <form onSubmit={handleSubmit} className="space-y-4 text-xs" onClick={(e) => e.stopPropagation()}>
         <div className="space-y-1">
           <label htmlFor="name" className="text-xs font-medium mb-1 text-gray-700 flex items-center gap-1.5">
@@ -180,7 +221,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
           </motion.div>
           <AnimatePresence>
             {touched.name && errors.name && (
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -192,7 +233,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
             )}
           </AnimatePresence>
         </div>
-        
+
         <div className="space-y-1">
           <label htmlFor="company" className="text-xs font-medium mb-1  text-gray-700 flex items-center gap-1.5">
             <Building2 size={14} strokeWidth={1.5} className="text-gray-500" />
@@ -216,7 +257,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
           </motion.div>
           <AnimatePresence>
             {touched.company && errors.company && (
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -228,7 +269,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
             )}
           </AnimatePresence>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label htmlFor="email" className="text-xs font-medium mb-1 text-gray-700 flex items-center gap-1.5">
@@ -247,7 +288,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
             />
             <AnimatePresence>
               {touched.email && errors.email && (
-                <motion.p 
+                <motion.p
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
@@ -259,7 +300,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
               )}
             </AnimatePresence>
           </div>
-          
+
           <div className="space-y-1">
             <label htmlFor="phone" className="text-xs font-medium mb-1 text-gray-700 flex items-center gap-1.5">
               <Phone size={14} strokeWidth={1.5} className="text-gray-500" />
@@ -276,7 +317,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
             />
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-medium mb-1  text-gray-700 flex items-center gap-1.5">
@@ -288,16 +329,16 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
               value={formData.priority as string}
               onValueChange={(value) => handleSelectChange('priority', value)}
             >
-              <SelectTrigger 
-                className={`w-full text-xs ${getPriorityColor(formData.priority as string)}`} 
+              <SelectTrigger
+                className={`w-full text-xs ${getPriorityColor(formData.priority as string)}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
               <SelectContent onClick={(e) => e.stopPropagation()} className="text-xs">
                 {priorityOptions.map(option => (
-                  <SelectItem 
-                    key={option.value} 
+                  <SelectItem
+                    key={option.value}
                     value={option.value}
                     className={`text-xs hover:bg-gray-50 ${option.value === formData.priority ? option.color : 'bg-transparent'}`}
                   >
@@ -307,7 +348,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-1">
             <label className="text-xs font-medium mb-1  text-gray-700 flex items-center gap-1.5">
               <BarChart3 size={14} strokeWidth={1.5} className="text-gray-500" />
@@ -318,16 +359,16 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
               value={formData.status as string}
               onValueChange={(value) => handleSelectChange('status', value)}
             >
-              <SelectTrigger 
-                className={`w-full text-xs ${getStatusColor(formData.status as string)}`} 
+              <SelectTrigger
+                className={`w-full text-xs ${getStatusColor(formData.status as string)}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent onClick={(e) => e.stopPropagation()} className="text-xs">
                 {statusOptions.map(option => (
-                  <SelectItem 
-                    key={option.value} 
+                  <SelectItem
+                    key={option.value}
                     value={option.value}
                     className={`text-xs hover:bg-gray-50 ${option.value === formData.status ? option.color : 'bg-transparent'}`}
                   >
@@ -338,7 +379,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
             </Select>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-medium mb-1 text-gray-700 flex items-center gap-1.5">
@@ -350,8 +391,8 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
               value={formData.leadSource || "none"}
               onValueChange={(value) => handleSelectChange('leadSource', value === "none" ? undefined : value as LeadSource)}
             >
-              <SelectTrigger 
-                className="w-full text-xs" 
+              <SelectTrigger
+                className="w-full text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
                 <SelectValue placeholder="Select lead source" />
@@ -361,8 +402,8 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
                   Not specified
                 </SelectItem>
                 {leadSourceOptions.map(option => (
-                  <SelectItem 
-                    key={option.value} 
+                  <SelectItem
+                    key={option.value}
                     value={option.value}
                     className="text-xs hover:bg-gray-50"
                   >
@@ -372,7 +413,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-1">
             <label className="text-xs font-medium mb-1 text-gray-700 flex items-center gap-1.5">
               <Users size={14} strokeWidth={1.5} className="text-gray-500" />
@@ -383,8 +424,8 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
               value={formData.assignedTo || "unassigned"}
               onValueChange={(value) => handleSelectChange('assignedTo', value === "unassigned" ? "" : value)}
             >
-              <SelectTrigger 
-                className="w-full text-xs" 
+              <SelectTrigger
+                className="w-full text-xs"
                 onClick={(e) => e.stopPropagation()}
               >
                 <SelectValue placeholder="Assign to team member" />
@@ -394,8 +435,8 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
                   Unassigned
                 </SelectItem>
                 {Object.values(teamMembers).map(member => (
-                  <SelectItem 
-                    key={member.id} 
+                  <SelectItem
+                    key={member.id}
                     value={member.id}
                     className="text-xs hover:bg-gray-50"
                   >
@@ -406,7 +447,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
             </Select>
           </div>
         </div>
-        
+
         <div className="space-y-1">
           <label htmlFor="notes" className="text-xs font-medium mb-1  text-gray-700 flex items-center gap-1.5">
             <ClipboardList size={14} strokeWidth={1.5} className="text-gray-500" />
@@ -422,14 +463,14 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
             placeholder="Additional notes about this lead..."
           />
         </div>
-        
-        <motion.div 
+
+        <motion.div
           className="flex justify-end gap-2 pt-3"
           initial={{ opacity: 0.9, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
         >
-          <Button type="button" variant="ghost" onClick={onClose} size="sm" className="text-xs">
+          <Button type="button" variant="ghost" onClick={handleClose} size="sm" className="text-xs">
             Cancel
           </Button>
           <Button type="submit" size="sm" className="text-xs">
