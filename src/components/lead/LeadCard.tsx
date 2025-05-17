@@ -2,12 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lead, Status, TeamMember } from '@/types';
+import { Lead, Status, Priority, TeamMember } from '@/types';
 import { Card } from '@/components/ui/card';
 import { useLeadDrag, useLeadDrop } from '@/hooks/useLeadDragDrop';
 import { initializeTeamMembers } from '@/utils/storage';
 import { AtSign, Phone, Globe, Users, ChevronDown, Calendar } from 'lucide-react';
 import { QuickStatusChange } from './QuickStatusChange';
+import { QuickPriorityChange } from './QuickPriorityChange';
 
 interface LeadCardProps {
   lead: Lead;
@@ -17,9 +18,10 @@ interface LeadCardProps {
   onDelete: (id: string) => void;
   moveCard: (dragIndex: number, hoverIndex: number, sourceColumn: Status, targetColumn: Status) => void;
   onStatusChange?: (lead: Lead, newStatus: Status) => void;
+  onPriorityChange?: (lead: Lead, newPriority: Priority) => void;
 }
 
-export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard, onStatusChange }: LeadCardProps) => {
+export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard, onStatusChange, onPriorityChange }: LeadCardProps) => {
   const [showActions, setShowActions] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [teamMembers, setTeamMembers] = useState<Record<string, TeamMember>>({});
@@ -149,6 +151,13 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard, on
                   <QuickStatusChange
                     lead={lead}
                     onStatusChange={onStatusChange}
+                  />
+                )}
+
+                {onPriorityChange && (
+                  <QuickPriorityChange
+                    lead={lead}
+                    onPriorityChange={onPriorityChange}
                   />
                 )}
 

@@ -5,7 +5,7 @@ import { BoardColumn } from '@/components/board/BoardColumn';
 import { LeadForm } from '@/components/lead/LeadForm';
 import { ImportModal } from '@/components/board/ImportModal';
 import { useBoard } from '@/context/BoardContext';
-import { Lead, Status } from '@/types';
+import { Lead, Status, Priority } from '@/types';
 
 export const Board = () => {
   const { board, leads, isLoading, addLead, editLead, removeLead, reorderLeads, moveLead } = useBoard();
@@ -63,6 +63,13 @@ export const Board = () => {
     }
   };
 
+  const handlePriorityChange = (lead: Lead, newPriority: Priority) => {
+    if (lead.priority !== newPriority) {
+      const updatedLead = { ...lead, priority: newPriority };
+      editLead(updatedLead);
+    }
+  };
+
   const handleLeadFormSubmit = (formData: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'> | Lead) => {
     if ('id' in formData) {
       editLead(formData as Lead);
@@ -116,6 +123,7 @@ export const Board = () => {
                   moveCard={handleMoveCard}
                   dropCard={handleDropCard}
                   onStatusChange={handleStatusChange}
+                  onPriorityChange={handlePriorityChange}
                 />
               );
             })}

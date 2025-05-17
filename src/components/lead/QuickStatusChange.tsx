@@ -35,10 +35,19 @@ export const QuickStatusChange = ({ lead, onStatusChange }: QuickStatusChangePro
       <Popover>
         <PopoverTrigger asChild>
           <button
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-50 flex items-center"
+            className={`p-1 text-gray-400 transition-all duration-200 rounded-full hover:bg-gray-50 flex items-center group`}
             title="Change Status"
           >
-            <BarChart3 size={12} />
+            <BarChart3
+              size={12}
+              className={`transition-colors duration-200 group-hover:${
+                lead.status === 'new' ? 'text-blue-500' :
+                lead.status === 'contacted' ? 'text-purple-500' :
+                lead.status === 'qualified' ? 'text-indigo-500' :
+                lead.status === 'won' ? 'text-green-500' :
+                lead.status === 'lost' ? 'text-red-500' : 'text-gray-600'
+              }`}
+            />
           </button>
         </PopoverTrigger>
         <PopoverContent

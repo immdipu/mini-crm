@@ -3,7 +3,7 @@ import { useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LeadCard } from '@/components/lead/LeadCard';
 import { Button } from '@/components/ui/Button';
-import { Lead, Status } from '@/types';
+import { Lead, Status, Priority } from '@/types';
 import { useColumnDrop, DragItem } from '@/hooks/useLeadDragDrop';
 
 // Status color mapping
@@ -107,6 +107,7 @@ interface BoardColumnProps {
   moveCard: (dragIndex: number, hoverIndex: number, sourceColumn: Status, targetColumn: Status) => void;
   dropCard: (leadId: string, sourceColumn: Status, targetColumn: Status) => void;
   onStatusChange?: (lead: Lead, newStatus: Status) => void;
+  onPriorityChange?: (lead: Lead, newPriority: Priority) => void;
 }
 
 export const BoardColumn = (({
@@ -119,7 +120,8 @@ export const BoardColumn = (({
   onLeadAdd,
   moveCard,
   dropCard,
-  onStatusChange
+  onStatusChange,
+  onPriorityChange
 }: BoardColumnProps) => {
   const leadsCount = useMemo(() => leadIds.length, [leadIds]);
 
@@ -188,6 +190,7 @@ export const BoardColumn = (({
               onDelete={onLeadDelete}
               moveCard={moveCard}
               onStatusChange={onStatusChange}
+              onPriorityChange={onPriorityChange}
             />
           ))}
         </AnimatePresence>
