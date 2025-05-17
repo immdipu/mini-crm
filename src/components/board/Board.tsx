@@ -91,7 +91,7 @@ export const Board = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <div className="flex gap-5 pb-4">
+        <div className="flex justify-center gap-5 pb-4">
           <AnimatePresence>
             {board.columnOrder.map((columnId) => {
               const column = board.columns[columnId];
