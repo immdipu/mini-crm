@@ -17,7 +17,13 @@ interface FieldMappingModalProps {
 }
 
 // Define the target fields structure
-const TARGET_FIELDS = [
+const TARGET_FIELDS: {
+  name: string;
+  label: string;
+  required: boolean;
+  dataType: 'string' | 'enum' | 'number' | 'boolean' | 'date';
+  enumValues?: string[];
+}[] = [
   { name: 'name', label: 'Name', required: true, dataType: 'string' },
   { name: 'company', label: 'Company', required: true, dataType: 'string' },
   { name: 'email', label: 'Email', required: false, dataType: 'string' },
