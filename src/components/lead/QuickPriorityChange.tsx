@@ -33,15 +33,23 @@ export const QuickPriorityChange = ({ lead, onPriorityChange }: QuickPriorityCha
       <Popover>
         <PopoverTrigger asChild>
           <button
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-50 flex items-center"
+            className="p-1 text-gray-400 transition-all duration-200 rounded-full hover:bg-gray-50 flex items-center group"
             title="Change Priority"
           >
-            <Flag size={12} />
+            <Flag
+              size={12}
+              className={cn(
+                "transition-colors duration-200",
+                lead.priority === 'low' && "group-hover:text-green-500",
+                lead.priority === 'medium' && "group-hover:text-orange-500",
+                lead.priority === 'high' && "group-hover:text-red-500"
+              )}
+            />
           </button>
         </PopoverTrigger>
-        <PopoverContent 
-          className="w-[180px] p-0" 
-          align="end" 
+        <PopoverContent
+          className="w-[180px] p-0"
+          align="end"
           sideOffset={5}
         >
           <div className="text-xs font-medium text-gray-500 px-2 py-2 border-b">
