@@ -74,7 +74,7 @@ export const Navigation = () => {
       >
         <Container>
           <div className="flex items-center justify-between w-full">
-            <h1 className="text-lg font-medium truncate">Sales CRM</h1>
+            <Link href="/" className="text-lg block font-medium truncate">Sales CRM</Link>
 
             {/* Mobile toggle */}
             {!isLandingPage && (
