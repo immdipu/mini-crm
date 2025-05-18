@@ -8,6 +8,12 @@ import {
   IntegrationProvider,
   AmpersandProvider,
 } from "@/context/AmpersandContext";
+import { 
+  useSalesforceIntegration, 
+  useHubSpotIntegration, 
+  useAirtableIntegration,
+  useMarketoIntegration
+} from "@/hooks/providers";
 import { InstallIntegration } from "@amp-labs/react";
 import "@amp-labs/react/styles";
 import "@/styles/ampersand-custom.css";
@@ -24,13 +30,52 @@ function IntegrationPageContent() {
   const {
     providers,
     providerDetails,
-    isConnecting,
-    isImporting,
-    connectProvider,
-    disconnectProvider,
-    syncProviderData,
-    hasConnectedProviders,
   } = useAmpersand();
+
+  // Provider-specific hooks
+  const salesforceIntegration = useSalesforceIntegration();
+  const hubspotIntegration = useHubSpotIntegration();
+  const airtableIntegration = useAirtableIntegration();
+  const marketoIntegration = useMarketoIntegration();
+
+  // Client-side state for connection info
+  const [isClientSide, setIsClientSide] = useState(false);
+  const [connectionInfo, setConnectionInfo] = useState<Record<IntegrationProvider, { connected: boolean, lastSynced?: Date }>>({
+    Salesforce: { connected: false },
+    HubSpot: { connected: false },
+    Marketo: { connected: false },
+    Airtable: { connected: false }
+  });
+
+  // Initialize client-side state after render
+  useEffect(() => {
+    setIsClientSide(true);
+    
+    // Load connection info from provider hooks
+    const salesforceInfo = salesforceIntegration.getConnectionInfo();
+    const hubspotInfo = hubspotIntegration.getConnectionInfo();
+    const airtableInfo = airtableIntegration.getConnectionInfo();
+    const marketoInfo = marketoIntegration.getConnectionInfo();
+    
+    setConnectionInfo({
+      Salesforce: { 
+        connected: salesforceInfo?.connected || false,
+        lastSynced: salesforceInfo?.lastSynced ? new Date(salesforceInfo.lastSynced) : undefined
+      },
+      HubSpot: { 
+        connected: hubspotInfo?.connected || false,
+        lastSynced: hubspotInfo?.lastSynced ? new Date(hubspotInfo.lastSynced) : undefined
+      },
+      Marketo: { 
+        connected: marketoInfo?.connected || false,
+        lastSynced: marketoInfo?.lastSynced ? new Date(marketoInfo.lastSynced) : undefined
+      },
+      Airtable: { 
+        connected: airtableInfo?.connected || false,
+        lastSynced: airtableInfo?.lastSynced ? new Date(airtableInfo.lastSynced) : undefined
+      }
+    });
+  }, []);
 
   // Debug providers
   useEffect(() => {
@@ -38,11 +83,9 @@ function IntegrationPageContent() {
     console.log("Provider details:", providerDetails);
   }, [providers, providerDetails]);
 
-  const [selectedProvider, setSelectedProvider] =
-    useState<IntegrationProvider | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<IntegrationProvider | null>(null);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
-  const [syncingProvider, setSyncingProvider] =
-    useState<IntegrationProvider | null>(null);
+  const [syncingProvider, setSyncingProvider] = useState<IntegrationProvider | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [installationId, setInstallationId] = useState<string | null>(null);
 
@@ -50,6 +93,22 @@ function IntegrationPageContent() {
   const showSuccessMessage = (message: string) => {
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(null), 5000); // Message disappears after 5 seconds
+  };
+
+  // Helper to get the proper integration hook for a provider
+  const getIntegrationHook = (provider: IntegrationProvider) => {
+    switch (provider) {
+      case 'Salesforce':
+        return salesforceIntegration;
+      case 'HubSpot':
+        return hubspotIntegration;
+      case 'Airtable':
+        return airtableIntegration;
+      case 'Marketo':
+        return marketoIntegration;
+      default:
+        return null;
+    }
   };
 
   // Effect to handle connection after modal is closed
@@ -61,11 +120,22 @@ function IntegrationPageContent() {
         );
 
         try {
-          const success = await connectProvider(
-            selectedProvider,
-            installationId
-          );
+          const integrationHook = getIntegrationHook(selectedProvider);
+          if (!integrationHook) {
+            throw new Error(`No integration hook available for ${selectedProvider}`);
+          }
+          
+          const success = await integrationHook.connect(installationId);
           if (success) {
+            // Update client-side state after successful connection
+            setConnectionInfo(prev => ({
+              ...prev,
+              [selectedProvider]: {
+                connected: true,
+                lastSynced: new Date()
+              }
+            }));
+            
             showSuccessMessage(
               `Successfully connected to ${selectedProvider}. Click the sync button to import leads.`
             );
@@ -83,15 +153,29 @@ function IntegrationPageContent() {
     };
 
     connectAfterInstall();
-  }, [installationId, selectedProvider, isInstallModalOpen, connectProvider]);
+  }, [installationId, selectedProvider, isInstallModalOpen]);
 
   const handleConnectClick = (provider: IntegrationProvider) => {
-    const providerInfo = providers.find((p) => p.name === provider);
+    const integrationHook = getIntegrationHook(provider);
 
-    if (providerInfo?.connected) {
+    if (!integrationHook) {
+      alert(`Integration for ${provider} is not available yet.`);
+      return;
+    }
+
+    if (connectionInfo[provider].connected) {
       // Disconnect the provider
-      disconnectProvider(provider).then((success) => {
+      integrationHook.disconnect().then((success: boolean) => {
         if (success) {
+          // Update client-side state after disconnection
+          setConnectionInfo(prev => ({
+            ...prev,
+            [provider]: {
+              connected: false,
+              lastSynced: undefined
+            }
+          }));
+          
           showSuccessMessage(`Successfully disconnected from ${provider}.`);
         } else {
           alert(`Failed to disconnect from ${provider}.`);
@@ -106,11 +190,27 @@ function IntegrationPageContent() {
 
   const handleSyncClick = async (provider: IntegrationProvider) => {
     setSyncingProvider(provider);
+    const integrationHook = getIntegrationHook(provider);
+    
+    if (!integrationHook) {
+      alert(`Integration for ${provider} is not available yet.`);
+      setSyncingProvider(null);
+      return;
+    }
+
     try {
-      const importedLeads = await syncProviderData(provider);
-      showSuccessMessage(
-        `Successfully imported ${importedLeads.length} leads from ${provider}.`
-      );
+      await integrationHook.syncData();
+      
+      // Update the last synced time
+      setConnectionInfo(prev => ({
+        ...prev,
+        [provider]: {
+          ...prev[provider],
+          lastSynced: new Date()
+        }
+      }));
+      
+      showSuccessMessage(`Successfully imported leads from ${provider}.`);
     } catch (err) {
       console.error("Sync error:", err);
       alert(
@@ -134,8 +234,21 @@ function IntegrationPageContent() {
     console.log(`Uninstallation successful for provider: ${selectedProvider}`);
     setIsInstallModalOpen(false);
     if (selectedProvider) {
-      showSuccessMessage(`Successfully uninstalled ${selectedProvider}.`);
-      disconnectProvider(selectedProvider);
+      const integrationHook = getIntegrationHook(selectedProvider);
+      if (integrationHook) {
+        integrationHook.disconnect().then(() => {
+          // Update client-side state after uninstallation
+          setConnectionInfo(prev => ({
+            ...prev,
+            [selectedProvider]: {
+              connected: false,
+              lastSynced: undefined
+            }
+          }));
+          
+          showSuccessMessage(`Successfully uninstalled ${selectedProvider}.`);
+        });
+      }
     }
   };
 
@@ -145,7 +258,9 @@ function IntegrationPageContent() {
     : null;
 
   // Count connected providers
-  const connectedCount = providers.filter((p) => p.connected).length;
+  const connectedCount = isClientSide 
+    ? Object.values(connectionInfo).filter(info => info.connected).length
+    : 0;
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -191,7 +306,7 @@ function IntegrationPageContent() {
                 </p>
               </div>
 
-              {hasConnectedProviders && (
+              {isClientSide && connectedCount > 0 && (
                 <div className="bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full flex items-center">
                   <span className="block h-2 w-2 bg-blue-600 rounded-full mr-1.5 animate-pulse"></span>
                   {connectedCount} connected
@@ -206,19 +321,20 @@ function IntegrationPageContent() {
                 );
                 if (!details) return null;
 
+                const integrationHook = getIntegrationHook(provider.name);
+                const providerConnectionInfo = connectionInfo[provider.name];
+
                 return (
                   <IntegrationCard
                     key={provider.name}
                     provider={provider.name}
                     details={details}
-                    connected={provider.connected}
-                    lastSynced={provider.lastSynced}
+                    connected={providerConnectionInfo.connected}
+                    lastSynced={providerConnectionInfo.lastSynced}
                     onConnect={() => handleConnectClick(provider.name)}
                     onSync={() => handleSyncClick(provider.name)}
-                    isConnecting={
-                      isConnecting && selectedProvider === provider.name
-                    }
-                    isSyncing={syncingProvider === provider.name || isImporting}
+                    isConnecting={integrationHook?.isConnecting || false}
+                    isSyncing={syncingProvider === provider.name || integrationHook?.isSyncing || false}
                   />
                 );
               })}

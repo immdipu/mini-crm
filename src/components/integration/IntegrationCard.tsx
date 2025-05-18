@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Plus, Check, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { IntegrationProvider, ProviderDetails } from '@/context/AmpersandContext';
+import { useState, useEffect } from 'react';
 
 interface IntegrationCardProps {
   provider: IntegrationProvider;
@@ -28,6 +29,18 @@ export const IntegrationCard = ({
 }: IntegrationCardProps) => {
   const { description, icon } = details;
   
+  // Client-side state to avoid hydration issues
+  const [isClient, setIsClient] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | undefined>(undefined);
+
+  // Only update client-side state after initial render to prevent hydration errors
+  useEffect(() => {
+    setIsClient(true);
+    setIsConnected(connected);
+    setLastSyncTime(lastSynced);
+  }, [connected, lastSynced]);
+  
   const cardVariants = {
     initial: { 
       opacity: 0, 
@@ -47,7 +60,7 @@ export const IntegrationCard = ({
     hover: {
       scale: 1.03,
       boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
-      borderColor: connected ? 'rgba(5, 150, 105, 0.5)' : 'rgba(59, 130, 246, 0.5)',
+      borderColor: isClient && isConnected ? 'rgba(5, 150, 105, 0.5)' : 'rgba(59, 130, 246, 0.5)',
       transition: {
         type: 'spring',
         stiffness: 500,
@@ -92,7 +105,7 @@ export const IntegrationCard = ({
         
         <h3 className="text-xl font-medium text-gray-900 mb-1">{provider}</h3>
         
-        {connected && (
+        {isClient && isConnected && (
           <motion.div 
             className="flex items-center mt-1"
             initial={{ opacity: 0, x: -10 }}
@@ -118,18 +131,18 @@ export const IntegrationCard = ({
       
       <p className="text-sm text-gray-500 mb-4 flex-grow">{description}</p>
       
-      {connected && lastSynced && (
+      {isClient && isConnected && lastSyncTime && (
         <div className="text-xs text-gray-500 mb-3 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
-          Last synced: {formatTimeAgo(lastSynced)}
+          Last synced: {formatTimeAgo(lastSyncTime)}
         </div>
       )}
       
       <div className="flex mt-auto">
-        {connected ? (
+        {isClient && isConnected ? (
           <>
             <motion.div
               whileHover={{ scale: 1.1 }}
@@ -150,9 +163,6 @@ export const IntegrationCard = ({
                   <RefreshCw size={14} className="text-blue-600" />
                 )}
               </Button>
-              <div className="absolute -top-8 left-50 transform -translate-x-1/4 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
-                Sync data
-              </div>
             </motion.div>
             <motion.div
               className="flex-grow"
