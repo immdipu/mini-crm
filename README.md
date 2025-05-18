@@ -1,6 +1,6 @@
 # Mini CRM Board
 
-A simple CRM board application built with Next.js, Tailwind CSS, and React, designed for hackathons and demos.
+A simple CRM board application built with Next.js.
 
 ## Features
 
