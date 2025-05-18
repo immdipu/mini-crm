@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { importLeads } from '@/utils/storage';
 import { hubspotData, getSourceFields as getMockSourceFields, getSampleData } from '@/utils/mockData';
 
-// Define HubSpot contact record shape
 interface HubSpotContactRecord {
   id: string;
   properties: {
@@ -21,7 +20,6 @@ interface HubSpotContactRecord {
   };
 }
 
-// Enhanced return type with mapping functions
 interface UseHubSpotIntegrationReturn extends UseIntegrationBaseReturn {
   fetchSourceFields: () => Promise<string[]>;
   fetchSampleData: () => Promise<Record<string, unknown>[]>;
@@ -35,8 +33,6 @@ interface UseHubSpotIntegrationReturn extends UseIntegrationBaseReturn {
 export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
   const { board, leads } = useBoard();
   const baseIntegration = useIntegrationBase({ provider: 'HubSpot' });
-  
-  // Add state for field mapping flow
   const [sourceFields, setSourceFields] = useState<string[]>([]);
   const [sampleData, setSampleData] = useState<Record<string, unknown>[]>([]);
   const [rawRecords, setRawRecords] = useState<HubSpotContactRecord[]>([]);
@@ -96,8 +92,6 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
       if (records.length === 0) {
         // Simulate API call delay
         await new Promise(resolve => setTimeout(resolve, 1200));
-        
-        // Get mock data
         const mockRecords = hubspotData;
         setRawRecords(mockRecords);
         records = mockRecords;
@@ -109,15 +103,12 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
       const importableLeads: ImportedLead[] = [];
       
       for (const record of records) {
-        // Create lead with required defaults
         const lead: ImportedLead = {
           name: (record.properties.firstname ? record.properties.firstname + ' ' : '') + (record.properties.lastname || 'Unknown'),
           company: record.properties.company || "Unknown Company",
           priority: 'medium' as Priority,
           notes: record.properties.notes || "",
         };
-        
-        // Apply mappings
         for (const mapping of mappings) {
           if (mapping.sourceField && mapping.targetField && 
               mapping.sourceField !== '_empty' && 
@@ -226,15 +217,12 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
   // Sync data from HubSpot (using mock data)
   const syncData = async (): Promise<Lead[]> => {
     try {
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Set raw records for use in importing
+
       if (rawRecords.length === 0) {
         setRawRecords(hubspotData);
       }
       
-      // Create default mappings for direct import
       const defaultMappings: FieldMapping[] = [
         { sourceField: 'firstname', targetField: 'name', required: true, dataType: 'string' },
         { sourceField: 'lastname', targetField: 'name', required: true, dataType: 'string' },
@@ -245,8 +233,7 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
         { sourceField: 'hs_lead_status', targetField: 'status', required: false, dataType: 'enum', enumValues: ['new', 'contacted', 'qualified', 'won', 'lost'] },
         { sourceField: 'priority', targetField: 'priority', required: false, dataType: 'enum', defaultValue: 'medium', enumValues: ['low', 'medium', 'high'] }
       ];
-      
-      // Import the leads with our default mapping
+    
       return await importWithMapping(defaultMappings);
     } catch (error) {
       console.error('Failed to sync data from HubSpot:', error);

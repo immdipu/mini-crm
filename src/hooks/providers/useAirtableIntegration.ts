@@ -5,7 +5,7 @@ import { useState } from "react";
 import { importLeads } from "@/utils/storage";
 import { airtableData, getSourceFields as getMockSourceFields, getSampleData } from "@/utils/mockData";
 
-// Define acceptable field value types in Airtable
+
 type AirtableFieldValue =
   | string
   | number
@@ -15,13 +15,12 @@ type AirtableFieldValue =
   | Record<string, unknown>
   | undefined;
 
-// Define Airtable record structure
+
 interface AirtableRecord {
   id: string;
   fields: Record<string, AirtableFieldValue>;
 }
 
-// Enhanced return type with mapping functions
 interface UseAirtableIntegrationReturn extends UseIntegrationBaseReturn {
   fetchSourceFields: () => Promise<string[]>;
   fetchSampleData: () => Promise<Record<string, unknown>[]>;
@@ -36,7 +35,6 @@ export const useAirtableIntegration = (): UseAirtableIntegrationReturn => {
   const { board, leads } = useBoard();
   const baseIntegration = useIntegrationBase({ provider: "Airtable" });
 
-  // Add state for field mapping flow
   const [sourceFields, setSourceFields] = useState<string[]>([]);
   const [sampleData, setSampleData] = useState<Record<string, unknown>[]>([]);
   const [rawRecords, setRawRecords] = useState<AirtableRecord[]>([]);
@@ -88,51 +86,31 @@ export const useAirtableIntegration = (): UseAirtableIntegrationReturn => {
 
   // Import data with user-defined field mappings
   const importWithMapping = async (mappings: FieldMapping[]): Promise<Lead[]> => {
-    console.log("Airtable importWithMapping called with mappings:", mappings);
     try {
       let records = rawRecords;
-      console.log("Initial rawRecords state:", records.length);
-      
       if (records.length === 0) {
-        console.log("No raw records found, loading mock data");
-        
-        // Simulate API call delay
         await new Promise(resolve => setTimeout(resolve, 1200));
-        
-        // Get mock data
         const mockRecords = airtableData;
         setRawRecords(mockRecords);
         records = mockRecords;
       }
-      
-      console.log("Processing records:", records.length);
-      
       // Convert Airtable records to ImportedLead format
       const importableLeads: ImportedLead[] = [];
       
       for (const record of records) {
-        const fields = record.fields;
-        console.log("Processing record with fields:", fields);
-        
-        // Create lead with required defaults
+        const fields = record.fields;      
         const lead: ImportedLead = {
           name: "Unknown Lead",
           company: "Unknown Company",
           priority: 'medium' as Priority,  // Required field in ImportedLead
           notes: "",
         };
-        
-        // Apply mappings
         for (const mapping of mappings) {
           if (mapping.sourceField && mapping.targetField && 
               mapping.sourceField !== '_empty' && 
               mapping.targetField !== '_empty') {
-            
-            const fieldValue = fields[mapping.sourceField];
-            console.log(`Mapping ${mapping.sourceField} to ${mapping.targetField}, value:`, fieldValue);
-            
+            const fieldValue = fields[mapping.sourceField];   
             if (fieldValue !== undefined && fieldValue !== null) {
-              // Handle different field types appropriately
               if (typeof fieldValue === 'string' || 
                   typeof fieldValue === 'number' || 
                   typeof fieldValue === 'boolean') {
@@ -195,13 +173,11 @@ export const useAirtableIntegration = (): UseAirtableIntegrationReturn => {
           }
         }
         
-        // Final validation of required fields
         if (!lead.name || lead.name.trim() === "") {
           // If we have a Name field in the Airtable data, use that
           if (typeof fields.Name === 'string') {
             lead.name = fields.Name;
           } else {
-            console.log("Setting default name for lead without name");
             lead.name = "Unknown Lead";
           }
         }
@@ -211,12 +187,9 @@ export const useAirtableIntegration = (): UseAirtableIntegrationReturn => {
           if (typeof fields.Company === 'string') {
             lead.company = fields.Company;
           } else {
-            console.log("Setting default company for lead without company");
             lead.company = "Unknown Company";
           }
         }
-        
-        console.log("Final Airtable lead to be added:", lead);
         importableLeads.push(lead);
       }
       
@@ -246,8 +219,6 @@ export const useAirtableIntegration = (): UseAirtableIntegrationReturn => {
         { sourceField: 'Source', targetField: 'leadSource', required: false, dataType: 'string' },
         { sourceField: 'Priority', targetField: 'priority', required: false, dataType: 'string' },
       ];
-      
-      // Import the data with our default mappings
       return await importWithMapping(defaultMappings);
       
     } catch (error) {

@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { importLeads } from '@/utils/storage';
 import { salesforceData, getSourceFields as getMockSourceFields, getSampleData } from '@/utils/mockData';
 
-// Define Salesforce lead record shape
 interface SalesforceLeadRecord {
   Id: string;
   FirstName?: string;
@@ -18,7 +17,6 @@ interface SalesforceLeadRecord {
   [key: string]: string | undefined; // Allow for dynamic fields
 }
 
-// Enhanced return type with mapping functions
 interface UseSalesforceIntegrationReturn extends UseIntegrationBaseReturn {
   fetchSourceFields: () => Promise<string[]>;
   fetchSampleData: () => Promise<Record<string, unknown>[]>;
@@ -32,8 +30,6 @@ interface UseSalesforceIntegrationReturn extends UseIntegrationBaseReturn {
 export const useSalesforceIntegration = (): UseSalesforceIntegrationReturn => {
   const { board, leads } = useBoard();
   const baseIntegration = useIntegrationBase({ provider: 'Salesforce' });
-  
-  // Add state for field mapping flow
   const [sourceFields, setSourceFields] = useState<string[]>([]);
   const [sampleData, setSampleData] = useState<Record<string, unknown>[]>([]);
   const [rawRecords, setRawRecords] = useState<SalesforceLeadRecord[]>([]);
@@ -45,15 +41,11 @@ export const useSalesforceIntegration = (): UseSalesforceIntegrationReturn => {
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Get mock fields
       const fields = getMockSourceFields('salesforce');
       setSourceFields(fields);
-      
       // Set sample data for preview (first 3 records)
       const samples = getSampleData('salesforce').slice(0, 3);
       setSampleData(samples);
-      
       // Set raw records for later use in import
       setRawRecords(salesforceData);
       
@@ -106,15 +98,12 @@ export const useSalesforceIntegration = (): UseSalesforceIntegrationReturn => {
       const importableLeads: ImportedLead[] = [];
       
       for (const record of records) {
-        // Create lead with required defaults
         const lead: ImportedLead = {
           name: (record.FirstName ? record.FirstName + ' ' : '') + (record.LastName || 'Unknown'),
           company: record.Company || "Unknown Company",
           priority: 'medium' as Priority,
           notes: record.Description || "",
         };
-        
-        // Apply mappings
         for (const mapping of mappings) {
           if (mapping.sourceField && mapping.targetField && 
               mapping.sourceField !== '_empty' && 
@@ -124,7 +113,6 @@ export const useSalesforceIntegration = (): UseSalesforceIntegrationReturn => {
             console.log(`Mapping ${mapping.sourceField} to ${mapping.targetField}, value:`, fieldValue);
             
             if (fieldValue !== undefined && fieldValue !== null) {
-              // Handle different field types appropriately
               if (typeof fieldValue === 'string' || 
                   typeof fieldValue === 'number' || 
                   typeof fieldValue === 'boolean') {
@@ -174,13 +162,12 @@ export const useSalesforceIntegration = (): UseSalesforceIntegrationReturn => {
                 else if (mapping.targetField === 'company') {
                   lead.company = String(fieldValue);
                 }
-                // Ignore other fields
+              
               }
             }
           }
         }
         
-        // Final validation of required fields
         if (!lead.name || lead.name.trim() === "") {
           console.log("Setting default name for lead without name");
           lead.name = "Unknown Lead";
@@ -194,8 +181,7 @@ export const useSalesforceIntegration = (): UseSalesforceIntegrationReturn => {
         console.log("Final Salesforce lead to be added:", lead);
         importableLeads.push(lead);
       }
-      
-      // Now import these leads into our board
+
       const result = importLeads(importableLeads, board, leads);
       
       return Object.values(result.leads).filter(lead => 
@@ -215,13 +201,11 @@ export const useSalesforceIntegration = (): UseSalesforceIntegrationReturn => {
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Set raw records for use in importing
+    
       if (rawRecords.length === 0) {
         setRawRecords(salesforceData);
       }
-      
-      // Create default mappings for direct import
+
       const defaultMappings: FieldMapping[] = [
         { sourceField: 'FirstName', targetField: 'name', required: true, dataType: 'string' },
         { sourceField: 'LastName', targetField: 'name', required: true, dataType: 'string' },
@@ -233,8 +217,7 @@ export const useSalesforceIntegration = (): UseSalesforceIntegrationReturn => {
         { sourceField: 'LeadSource', targetField: 'leadSource', required: false, dataType: 'enum', enumValues: ['website', 'referral', 'social_media', 'email_campaign', 'event', 'other'] },
         { sourceField: 'Rating', targetField: 'priority', required: false, dataType: 'enum', defaultValue: 'medium', enumValues: ['low', 'medium', 'high'] }
       ];
-      
-      // Import the leads with our default mapping
+
       return await importWithMapping(defaultMappings);
     } catch (error) {
       console.error('Failed to sync data from Salesforce:', error);

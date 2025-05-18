@@ -2,20 +2,15 @@ import { useState } from 'react';
 import { IntegrationProvider } from '@/context/IntegrationContext';
 import { Lead } from '@/types';
 
-// Structure for storing integration settings in localStorage
 export interface IntegrationStorage {
   connected: boolean;
   lastSynced: string;
   installationId: string;
   configDetails?: Record<string, unknown>;
 }
-
-// Props for the base hook
 export interface UseIntegrationBaseProps {
   provider: IntegrationProvider;
 }
-
-// Return type for the base hook
 export interface UseIntegrationBaseReturn {
   isConnecting: boolean;
   isSyncing: boolean;

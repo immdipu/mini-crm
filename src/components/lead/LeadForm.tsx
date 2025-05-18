@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ModalDialog } from '@/components/ui/ModalDialog';
@@ -50,13 +49,11 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [teamMembers, setTeamMembers] = useState<Record<string, TeamMember>>({});
-
   useEffect(() => {
     const loadedMembers = initializeTeamMembers();
     setTeamMembers(loadedMembers);
   }, []);
 
-  // Update form data when initialData changes
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -70,9 +67,7 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
         leadSource: initialData.leadSource || undefined,
         assignedTo: initialData.assignedTo || undefined,
       });
-      // Reset touched state when initialData changes
       setTouched({});
-      // Reset errors
       setErrors({});
     } else {
       // Reset form when adding a new lead
@@ -190,7 +185,6 @@ export const LeadForm = ({ isOpen, onClose, onSubmit, initialData }: LeadFormPro
     return statusOptions.find(option => option.value === status)?.color || '';
   };
 
-  // Handle modal close
   const handleClose = () => {
     onClose();
   };

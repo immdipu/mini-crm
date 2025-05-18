@@ -34,17 +34,13 @@ interface IntegrationContextType {
   hasConnectedProviders: boolean;
 }
 
-// Create the context
 const IntegrationContext = createContext<IntegrationContextType | undefined>(undefined);
 
-// Provider component wrapper
 export const IntegrationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   return <InnerIntegrationProvider>{children}</InnerIntegrationProvider>;
 };
 
-// Inner provider implementation
 const InnerIntegrationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Provider details with icons and descriptions
   const providerDetails: ProviderDetails[] = [
     { 
       name: 'Salesforce', 
@@ -71,8 +67,7 @@ const InnerIntegrationProvider: React.FC<{ children: ReactNode }> = ({ children 
       integrationName: 'airtable-leads-integration'
     }
   ];
-  
-  // State for our providers
+
   const [providers, setProviders] = useState<ProviderConnection[]>([
     { name: 'Salesforce', connected: false },
     { name: 'HubSpot', connected: false },
@@ -82,7 +77,7 @@ const InnerIntegrationProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [isConnecting, setIsConnecting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
 
-  // Load the saved connection status from localStorage on mount
+
   useEffect(() => {
     const savedConnections = localStorage.getItem('integration_connections');
     if (savedConnections) {
@@ -100,20 +95,17 @@ const InnerIntegrationProvider: React.FC<{ children: ReactNode }> = ({ children 
     localStorage.setItem('integration_connections', JSON.stringify(providers));
   }, [providers]);
 
-  // Connect to a provider - simplified mock version
   const connectProvider = async (provider: IntegrationProvider, installationId: string): Promise<boolean> => {
     setIsConnecting(true);
     try {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Get the integration name for this provider
       const providerDetail = providerDetails.find(p => p.name === provider);
       if (!providerDetail) {
         throw new Error(`Provider ${provider} configuration not found`);
       }
       
-      // Update the provider's connection status
       setProviders(prev => 
         prev.map(p => 
           p.name === provider 
@@ -136,13 +128,11 @@ const InnerIntegrationProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
-  // Disconnect from a provider
   const disconnectProvider = async (provider: IntegrationProvider): Promise<boolean> => {
     try {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Update the provider's connection status
       setProviders(prev => 
         prev.map(p => 
           p.name === provider 
@@ -158,11 +148,10 @@ const InnerIntegrationProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
-  // Import data from a specific provider hook
+
   const syncProviderData = async (provider: IntegrationProvider): Promise<Lead[]> => {
     setIsImporting(true);
     try {
-      // Check if the provider is connected
       const providerInfo = providers.find(p => p.name === provider);
       if (!providerInfo || !providerInfo.connected) {
         throw new Error(`Provider ${provider} is not connected`);
@@ -171,7 +160,6 @@ const InnerIntegrationProvider: React.FC<{ children: ReactNode }> = ({ children 
       // Simulate API request delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Return empty array - the actual syncing is handled by the provider-specific hooks
       return [];
     } catch (error) {
       console.error(`Failed to sync data from ${provider}:`, error);
@@ -181,10 +169,8 @@ const InnerIntegrationProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
-  // Check if we have any connected providers
   const hasConnectedProviders = providers.some(p => p.connected);
 
-  // Context value
   const value = {
     providers,
     providerDetails,
@@ -199,7 +185,6 @@ const InnerIntegrationProvider: React.FC<{ children: ReactNode }> = ({ children 
   return <IntegrationContext.Provider value={value}>{children}</IntegrationContext.Provider>;
 };
 
-// Hook for using the integration context
 export const useIntegration = () => {
   const context = useContext(IntegrationContext);
   

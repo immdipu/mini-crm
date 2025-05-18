@@ -27,12 +27,9 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard, on
   const [teamMembers, setTeamMembers] = useState<Record<string, TeamMember>>({});
 
   useEffect(() => {
-    // Load team members
     const loadedMembers = initializeTeamMembers();
     setTeamMembers(loadedMembers);
   }, []);
-
-
 
   const getLeadSourceLabel = (source?: string) => {
     switch (source) {
@@ -54,7 +51,6 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard, on
 
       const date = new Date(timestamp);
 
-      // Check if date is valid
       if (isNaN(date.getTime())) {
         return 'Invalid date';
       }
@@ -73,17 +69,11 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard, on
 
   const { isDragging, drag } = useLeadDrag(lead, index, columnId);
   const { drop } = useLeadDrop(columnId, index, moveCard);
-
-
   const cardRef = useRef<HTMLDivElement>(null);
 
-
   const attachRefs = (element: HTMLDivElement | null) => {
-
     drag(element);
-
     drop.current = element;
-
     if (cardRef) {
       cardRef.current = element;
     }
@@ -112,7 +102,6 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard, on
       onMouseLeave={() => setShowActions(false)}
     >
       <Card className={`p-0  rounded-md border-none bg-white cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'} ${showDetails ? 'ring-1 ring-blue-100' : ''} relative overflow-hidden`}>
-
         <div className={`absolute left-0 top-0  bottom-0 w-1 ${
           lead.priority === 'high' ? 'bg-red-500' :
           lead.priority === 'medium' ? 'bg-orange-500' :
@@ -130,9 +119,7 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard, on
                 {lead.company}
               </p>
             </div>
-
             <div className="relative h-[22px] min-w-[40px]">
-
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
@@ -203,7 +190,6 @@ export const LeadCard = ({ lead, index, columnId, onEdit, onDelete, moveCard, on
                 }}
                 className="overflow-hidden mt-3"
               >
-
                 <div className="space-y-2">
                   {lead.email && (
                     <div className="flex items-center text-xs text-gray-600 gap-1">

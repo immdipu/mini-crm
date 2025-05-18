@@ -89,7 +89,6 @@ export function useLeadDrop(
   return { isOver, canDrop, drop: ref };
 }
 
-// Hook for making a column droppable
 export function useColumnDrop(
   columnId: Status,
   onDrop: (item: DragItem, columnId: Status) => void

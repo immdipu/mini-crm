@@ -16,7 +16,6 @@ interface IntegrationFieldMappingModalProps {
   isLoadingFields: boolean;
 }
 
-// Define the target fields structure
 const TARGET_FIELDS: {
   name: string;
   label: string;
@@ -98,21 +97,17 @@ export const IntegrationFieldMappingModal = ({
     }
   }, [sourceFields]);
 
-  // Handle mapping changes
   const handleMappingChange = (newMappings: FieldMappingType[]) => {
     setMappings(newMappings);
   };
 
-  // Handle completion
   const handleComplete = () => {
-    // Filter out any mappings with _empty values
     const validMappings = mappings.filter(
       mapping => mapping.sourceField !== '_empty' &&
                 mapping.targetField !== '_empty' &&
                 mapping.sourceField &&
                 mapping.targetField
     );
-
     onComplete(validMappings);
     onClose();
   };
@@ -134,15 +129,12 @@ export const IntegrationFieldMappingModal = ({
             <p className="text-sm text-gray-600 mb-4">
               Match fields from your {providerName} data to your CRM board fields. This mapping will be used when syncing data.
             </p>
-
-            {/* Field mapping component */}
             <FieldMapping
               sourceFields={sourceFields}
               targetFields={TARGET_FIELDS}
               mappings={mappings}
               onChange={handleMappingChange}
             />
-
             <div className="flex justify-between items-center gap-2 pt-4 border-t mt-4">
               <div className="text-xs text-gray-500">
                 {mappings.filter(m => m.targetField !== '_empty' && m.sourceField !== '_empty').length} fields mapped

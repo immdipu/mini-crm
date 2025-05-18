@@ -14,7 +14,6 @@ interface QuickStatusChangeProps {
   onStatusChange: (lead: Lead, newStatus: Status) => void;
 }
 
-// Status options with colors
 const statusOptions = [
   { value: 'new', label: 'New', color: 'bg-blue-100 text-blue-700', dotColor: 'bg-blue-500' },
   { value: 'contacted', label: 'Contacted', color: 'bg-purple-100 text-purple-700', dotColor: 'bg-purple-500' },

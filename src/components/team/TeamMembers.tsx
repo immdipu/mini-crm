@@ -21,7 +21,6 @@ export const TeamMembers = () => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Load team members from localStorage
     const loadedMembers = initializeTeamMembers();
     setTeamMembers(loadedMembers);
     setIsLoaded(true);

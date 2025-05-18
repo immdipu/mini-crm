@@ -31,7 +31,6 @@ export const IntegrationModal = ({
     try {
       // Simulate authentication after a delay
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
       // Simulate success
       onSuccess();
       onClose();

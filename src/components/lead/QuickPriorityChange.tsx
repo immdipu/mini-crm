@@ -14,7 +14,6 @@ interface QuickPriorityChangeProps {
   onPriorityChange: (lead: Lead, newPriority: Priority) => void;
 }
 
-// Priority options with colors
 const priorityOptions = [
   { value: 'low', label: 'Low', color: 'bg-green-100 text-green-700', dotColor: 'bg-green-500' },
   { value: 'medium', label: 'Medium', color: 'bg-orange-100 text-orange-700', dotColor: 'bg-orange-500' },
