@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/Button';
 import { Lead, Status, Priority } from '@/types';
 import { useColumnDrop, DragItem } from '@/hooks/useLeadDragDrop';
 
-// Status color mapping
 const getStatusColor = (status: Status): string => {
   switch (status) {
     case 'new':
@@ -42,7 +41,6 @@ const getStatusBorderColor = (status: Status): string => {
   }
 };
 
-// Status accent color mapping (for top border)
 const getStatusAccentColor = (status: Status): string => {
   switch (status) {
     case 'new':
@@ -60,7 +58,6 @@ const getStatusAccentColor = (status: Status): string => {
   }
 };
 
-// Status badge color mapping for count badges
 const getStatusBadgeColors = (status: Status): string => {
   switch (status) {
     case 'new':
@@ -78,7 +75,6 @@ const getStatusBadgeColors = (status: Status): string => {
   }
 };
 
-// Status text color mapping for titles
 const getStatusTextColor = (status: Status): string => {
   switch (status) {
     case 'new':
