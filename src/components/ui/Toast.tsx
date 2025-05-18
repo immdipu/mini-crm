@@ -58,6 +58,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
         }, duration);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -110,6 +111,10 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
     }
   };
 
+  const handleDismiss = useCallback(() => {
+    onDismiss();
+  }, [onDismiss]);
+
   return (
     <motion.div
       className={`rounded-md border p-4 shadow-md ${getVariantClasses()}`}
@@ -124,7 +129,7 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
           {toast.description && <p className="text-xs mt-1">{toast.description}</p>}
         </div>
         <button
-          onClick={onDismiss}
+          onClick={handleDismiss}
           className="text-gray-500 hover:text-gray-700 focus:outline-none"
         >
           <X size={16} />

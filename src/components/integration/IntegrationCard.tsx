@@ -5,6 +5,7 @@ import { Plus, Check, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { IntegrationProvider, ProviderDetails } from '@/context/IntegrationContext';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface IntegrationCardProps {
   provider: IntegrationProvider;
@@ -127,7 +128,13 @@ export const IntegrationCard = ({
         >
           {/* Provider Logo */}
           {icon ? (
-            <img src={icon} alt={provider} className="w-full h-full object-contain" />
+            <Image 
+              src={icon} 
+              alt={provider} 
+              width={48} 
+              height={48} 
+              className="object-contain" 
+            />
           ) : (
             <span className="text-lg font-medium text-gray-500">{provider.substring(0, 2)}</span>
           )}

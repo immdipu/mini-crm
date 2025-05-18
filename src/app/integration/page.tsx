@@ -87,6 +87,7 @@ function IntegrationPageContent() {
         lastSynced: airtableInfo?.lastSynced ? new Date(airtableInfo.lastSynced) : undefined
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Debug providers
