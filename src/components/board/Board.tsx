@@ -26,19 +26,15 @@ export const Board = () => {
     lost: false
   });
 
-  // Check if the screen is mobile size
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 1024); // Updated from 768px to 1024px (lg breakpoint in Tailwind)
+      setIsMobile(window.innerWidth < 1024);
     };
 
-    // Check on initial load
     checkIsMobile();
-    
-    // Add event listener for window resize
+
     window.addEventListener('resize', checkIsMobile);
-    
-    // Cleanup the event listener on component unmount
+
     return () => {
       window.removeEventListener('resize', checkIsMobile);
     };
@@ -129,7 +125,6 @@ export const Board = () => {
     );
   }
 
-  // Get total leads count
   const getTotalLeadsCount = () => {
     return Object.values(board.columns).reduce(
       (total, column) => total + column.leadIds.length, 
@@ -147,7 +142,6 @@ export const Board = () => {
         const columnLeads = column.leadIds.map(id => leads[id]).filter(Boolean);
         const isExpanded = expandedColumns[columnId];
         
-        // Get status color based on column ID
         let statusColor;
         switch (columnId) {
           case 'new': statusColor = 'bg-blue-100 text-blue-800'; break;
