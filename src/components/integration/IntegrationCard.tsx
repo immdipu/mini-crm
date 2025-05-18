@@ -86,7 +86,6 @@ export const IntegrationCard = ({
       variants={cardVariants}
       initial="initial"
       animate="animate"
-      whileHover="hover"
       transition={{ duration: 0.2 }}
     >
       <div className="mb-4">
