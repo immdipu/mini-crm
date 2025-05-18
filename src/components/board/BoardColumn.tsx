@@ -23,7 +23,6 @@ const getStatusColor = (status: Status): string => {
   }
 };
 
-// Status border color mapping
 const getStatusBorderColor = (status: Status): string => {
   switch (status) {
     case 'new':
