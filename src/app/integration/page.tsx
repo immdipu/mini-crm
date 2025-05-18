@@ -8,18 +8,17 @@ import {
   IntegrationProvider,
   IntegrationProvider as IntegrationProviderComponent,
 } from "@/context/IntegrationContext";
-import { 
-  useSalesforceIntegration, 
-  useHubSpotIntegration, 
+import {
+  useSalesforceIntegration,
+  useHubSpotIntegration,
   useAirtableIntegration,
   useMarketoIntegration,
-  UseIntegrationBaseReturn
+  UseIntegrationBaseReturn,
 } from "@/hooks/providers";
-import { IntegrationFieldMappingModal } from '@/components/integration/IntegrationFieldMappingModal';
+import { IntegrationFieldMappingModal } from "@/components/integration/IntegrationFieldMappingModal";
 import { FieldMapping } from "@/types";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
-// Define a custom interface that extends the base return type with mapping functions
 interface MappingEnabledIntegration extends UseIntegrationBaseReturn {
   fetchSourceFields: () => Promise<string[]>;
   fetchSampleData: () => Promise<Record<string, unknown>[]>;
@@ -39,90 +38,98 @@ export default function IntegrationPage() {
 }
 
 function IntegrationPageContent() {
-  const {
-    providers,
-    providerDetails,
-  } = useIntegration();
+  const { providers, providerDetails } = useIntegration();
 
-  // Provider-specific hooks
   const salesforceIntegration = useSalesforceIntegration();
   const hubspotIntegration = useHubSpotIntegration();
   const airtableIntegration = useAirtableIntegration();
   const marketoIntegration = useMarketoIntegration();
 
-  // Client-side state for connection info
   const [isClientSide, setIsClientSide] = useState(false);
-  const [connectionInfo, setConnectionInfo] = useState<Record<IntegrationProvider, { connected: boolean, lastSynced?: Date }>>({
+  const [connectionInfo, setConnectionInfo] = useState<
+    Record<IntegrationProvider, { connected: boolean; lastSynced?: Date }>
+  >({
     Salesforce: { connected: false },
     HubSpot: { connected: false },
     Marketo: { connected: false },
-    Airtable: { connected: false }
+    Airtable: { connected: false },
   });
 
-  // Initialize client-side state after render
   useEffect(() => {
     setIsClientSide(true);
-    
-    // Load connection info from provider hooks
+
     const salesforceInfo = salesforceIntegration.getConnectionInfo();
     const hubspotInfo = hubspotIntegration.getConnectionInfo();
     const airtableInfo = airtableIntegration.getConnectionInfo();
     const marketoInfo = marketoIntegration.getConnectionInfo();
-    
+
     setConnectionInfo({
-      Salesforce: { 
+      Salesforce: {
         connected: salesforceInfo?.connected || false,
-        lastSynced: salesforceInfo?.lastSynced ? new Date(salesforceInfo.lastSynced) : undefined
+        lastSynced: salesforceInfo?.lastSynced
+          ? new Date(salesforceInfo.lastSynced)
+          : undefined,
       },
-      HubSpot: { 
+      HubSpot: {
         connected: hubspotInfo?.connected || false,
-        lastSynced: hubspotInfo?.lastSynced ? new Date(hubspotInfo.lastSynced) : undefined
+        lastSynced: hubspotInfo?.lastSynced
+          ? new Date(hubspotInfo.lastSynced)
+          : undefined,
       },
-      Marketo: { 
+      Marketo: {
         connected: marketoInfo?.connected || false,
-        lastSynced: marketoInfo?.lastSynced ? new Date(marketoInfo.lastSynced) : undefined
+        lastSynced: marketoInfo?.lastSynced
+          ? new Date(marketoInfo.lastSynced)
+          : undefined,
       },
-      Airtable: { 
+      Airtable: {
         connected: airtableInfo?.connected || false,
-        lastSynced: airtableInfo?.lastSynced ? new Date(airtableInfo.lastSynced) : undefined
-      }
+        lastSynced: airtableInfo?.lastSynced
+          ? new Date(airtableInfo.lastSynced)
+          : undefined,
+      },
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Debug providers
   useEffect(() => {
     console.log("Available providers:", providers);
     console.log("Provider details:", providerDetails);
   }, [providers, providerDetails]);
 
-  const [syncingProvider, setSyncingProvider] = useState<IntegrationProvider | null>(null);
-  const [connectingProvider, setConnectingProvider] = useState<IntegrationProvider | null>(null);
+  const [syncingProvider, setSyncingProvider] =
+    useState<IntegrationProvider | null>(null);
+  const [connectingProvider, setConnectingProvider] =
+    useState<IntegrationProvider | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Add new state for field mapping modal
   const [showFieldMappingModal, setShowFieldMappingModal] = useState(false);
-  const [currentProvider, setCurrentProvider] = useState<IntegrationProvider | null>(null);
-  const [providerSourceFields, setProviderSourceFields] = useState<string[]>([]);
+  const [currentProvider, setCurrentProvider] =
+    useState<IntegrationProvider | null>(null);
+  const [providerSourceFields, setProviderSourceFields] = useState<string[]>(
+    []
+  );
   const [isLoadingFields, setIsLoadingFields] = useState(false);
-  const [activeIntegrationHook, setActiveIntegrationHook] = useState<MappingEnabledIntegration | null>(null);
+  const [activeIntegrationHook, setActiveIntegrationHook] =
+    useState<MappingEnabledIntegration | null>(null);
 
-  // Helper to display temporary success messages
   const showSuccessMessage = (message: string) => {
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(null), 5000); // Message disappears after 5 seconds
   };
 
-  // Helper to get the proper integration hook for a provider
-  const getIntegrationHook = (provider: IntegrationProvider): MappingEnabledIntegration | null => {
+  const getIntegrationHook = (
+    provider: IntegrationProvider
+  ): MappingEnabledIntegration | null => {
     switch (provider) {
-      case 'Salesforce':
+      case "Salesforce":
         return salesforceIntegration as MappingEnabledIntegration;
-      case 'HubSpot':
+      case "HubSpot":
         return hubspotIntegration as MappingEnabledIntegration;
-      case 'Airtable':
+      case "Airtable":
         return airtableIntegration as MappingEnabledIntegration;
-      case 'Marketo':
+      case "Marketo":
         return marketoIntegration as MappingEnabledIntegration;
       default:
         return null;
@@ -138,45 +145,41 @@ function IntegrationPageContent() {
     }
 
     if (connectionInfo[provider].connected) {
-      // Disconnect the provider
       integrationHook.disconnect().then((success: boolean) => {
         if (success) {
-          // Update client-side state after disconnection
-          setConnectionInfo(prev => ({
+          setConnectionInfo((prev) => ({
             ...prev,
             [provider]: {
               connected: false,
-              lastSynced: undefined
-            }
+              lastSynced: undefined,
+            },
           }));
-          
+
           showSuccessMessage(`Successfully disconnected from ${provider}.`);
         } else {
           alert(`Failed to disconnect from ${provider}.`);
         }
       });
     } else {
-      // Connect the provider - simplified version with mock installation ID
       setConnectingProvider(provider);
-      
+
       try {
-        // Generate a mock installation ID
-        const mockInstallationId = provider.substring(0, 3).toUpperCase() + '-' + uuidv4().substring(0, 8);
-        
-        // Small delay to simulate connection process
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
+        const mockInstallationId =
+          provider.substring(0, 3).toUpperCase() +
+          "-" +
+          uuidv4().substring(0, 8);
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+
         const success = await integrationHook.connect(mockInstallationId);
         if (success) {
-          // Update client-side state after successful connection
-          setConnectionInfo(prev => ({
+          setConnectionInfo((prev) => ({
             ...prev,
             [provider]: {
               connected: true,
-              lastSynced: new Date()
-            }
+              lastSynced: new Date(),
+            },
           }));
-          
+
           showSuccessMessage(
             `Successfully connected to ${provider}. Click the sync button to import leads.`
           );
@@ -196,22 +199,18 @@ function IntegrationPageContent() {
     setSyncingProvider(provider);
     setCurrentProvider(provider);
     const integrationHook = getIntegrationHook(provider);
-    
+
     if (!integrationHook) {
       alert(`Integration for ${provider} is not available yet.`);
       setSyncingProvider(null);
       return;
     }
-    
+
     try {
       setIsLoadingFields(true);
       setActiveIntegrationHook(integrationHook);
-      
-      // Instead of syncing directly, fetch the source fields first
       const fields = await integrationHook.fetchSourceFields();
       setProviderSourceFields(fields);
-      
-      // Show the field mapping modal
       setShowFieldMappingModal(true);
     } catch (err) {
       console.error("Field fetch error:", err);
@@ -225,36 +224,35 @@ function IntegrationPageContent() {
       setSyncingProvider(null);
     }
   };
-  
-  // Handle completing the field mapping
+
   const handleFieldMappingComplete = async (mappings: FieldMapping[]) => {
     console.log("handleFieldMappingComplete called with mappings:", mappings);
     if (!currentProvider || !activeIntegrationHook) {
-      console.error("Missing provider or integration hook", { currentProvider, activeIntegrationHook });
+      console.error("Missing provider or integration hook", {
+        currentProvider,
+        activeIntegrationHook,
+      });
       return;
     }
-    
+
     setSyncingProvider(currentProvider);
-    console.log("About to call importWithMapping on hook:", activeIntegrationHook);
-    
     try {
-      // Import with the provided mappings
-      console.log("Calling importWithMapping with mappings:", mappings);
-      const importedLeads = await activeIntegrationHook.importWithMapping(mappings);
-      console.log("importWithMapping returned leads:", importedLeads);
-      
-      // Update the last synced time
-      setConnectionInfo(prev => ({
+      const importedLeads = await activeIntegrationHook.importWithMapping(
+        mappings
+      );
+
+      setConnectionInfo((prev) => ({
         ...prev,
         [currentProvider]: {
           ...prev[currentProvider],
-          lastSynced: new Date()
-        }
+          lastSynced: new Date(),
+        },
       }));
+
+      showSuccessMessage(
+        `Successfully imported ${importedLeads.length} leads from ${currentProvider}.`
+      );
       
-      showSuccessMessage(`Successfully imported ${importedLeads.length} leads from ${currentProvider}.`);
-      
-      // Reset state
       setShowFieldMappingModal(false);
       setCurrentProvider(null);
       setProviderSourceFields([]);
@@ -272,8 +270,8 @@ function IntegrationPageContent() {
   };
 
   // Count connected providers
-  const connectedCount = isClientSide 
-    ? Object.values(connectionInfo).filter(info => info.connected).length
+  const connectedCount = isClientSide
+    ? Object.values(connectionInfo).filter((info) => info.connected).length
     : 0;
 
   return (
@@ -347,8 +345,14 @@ function IntegrationPageContent() {
                     lastSynced={providerConnectionInfo.lastSynced}
                     onConnect={() => handleConnectClick(provider.name)}
                     onSync={() => handleSyncClick(provider.name)}
-                    isConnecting={connectingProvider === provider.name || (integrationHook?.isConnecting ?? false)}
-                    isSyncing={syncingProvider === provider.name || (integrationHook?.isSyncing ?? false)}
+                    isConnecting={
+                      connectingProvider === provider.name ||
+                      (integrationHook?.isConnecting ?? false)
+                    }
+                    isSyncing={
+                      syncingProvider === provider.name ||
+                      (integrationHook?.isSyncing ?? false)
+                    }
                   />
                 );
               })}
@@ -361,7 +365,7 @@ function IntegrationPageContent() {
       {showFieldMappingModal && activeIntegrationHook && (
         <IntegrationFieldMappingModal
           isOpen={showFieldMappingModal}
-          providerName={currentProvider || 'Provider'}
+          providerName={currentProvider || "Provider"}
           sourceFields={providerSourceFields}
           isLoadingFields={isLoadingFields}
           onClose={() => {
