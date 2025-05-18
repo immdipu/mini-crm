@@ -75,8 +75,6 @@ export const Navigation = () => {
         <Container>
           <div className="flex items-center justify-between w-full">
             <Link href="/" className="text-lg block font-medium truncate">Sales CRM</Link>
-
-            {/* Mobile toggle */}
             {!isLandingPage && (
               <button 
                 className="md:hidden ml-2" 
@@ -90,8 +88,6 @@ export const Navigation = () => {
                 )}
               </button>
             )}
-
-            {/* Desktop Navigation */}
             {isLandingPage ? (
               <Link href="/board">
                 <Button size="sm">
@@ -138,7 +134,6 @@ export const Navigation = () => {
               </div>
             )}
 
-            {/* Desktop Action Buttons */}
             {showLeadActions && (
               <div className="hidden md:flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setIsImportModalOpen(true)}>
@@ -160,7 +155,6 @@ export const Navigation = () => {
         </Container>
       </header>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && !isLandingPage && (
           <motion.div
