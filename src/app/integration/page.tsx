@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { IntegrationCard } from "@/components/integration/IntegrationCard";
 import { useAmpersand, IntegrationProvider } from "@/context/AmpersandContext";
 import { InstallIntegration } from "@amp-labs/react";
+import "@amp-labs/react/styles";
+import "@/styles/ampersand-custom.css";
 
 export default function IntegrationPage() {
   const {
@@ -131,27 +133,51 @@ export default function IntegrationPage() {
       </motion.div>
 
       {isInstallModalOpen && selectedProvider && selectedProviderDetails && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-xl max-h-[90vh] overflow-auto rounded-md">
-            <InstallIntegration
-              integration={selectedProviderDetails.integrationName}
-              consumerRef="user-123"
-              consumerName="John Doe"
-              groupRef="org-123"
-              groupName="Mini CRM Organization"
-              onInstallSuccess={(installationId) => {
-                handleInstallSuccess(installationId);
-              }}
-              onUpdateSuccess={(installationId) => {
-                handleInstallSuccess(installationId);
-              }}
-              onUninstallSuccess={() => {
-                setIsInstallModalOpen(false);
-                alert(`Successfully uninstalled ${selectedProvider}.`);
-              }}
-            />
-          </div>
-        </div>
+        <motion.div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.div 
+            className="bg-white w-full max-w-xl max-h-[90vh] overflow-auto rounded-lg shadow-xl relative"
+            initial={{ scale: 0.95, y: 10 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.95, y: 10 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <button 
+              onClick={() => setIsInstallModalOpen(false)} 
+              className="absolute top-3 right-3 z-50 opacity-40 hover:opacity-100  transition-colors rounded-full p-1.5 "
+              aria-label="Close"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <div className="w-full py-5 h-full">
+              <InstallIntegration
+                integration={selectedProviderDetails.integrationName}
+                consumerRef="user-123"
+                consumerName="John Doe"
+                groupRef="org-123"
+                groupName="Mini CRM Organization"
+                onInstallSuccess={(installationId) => {
+                  handleInstallSuccess(installationId);
+                }}
+                onUpdateSuccess={(installationId) => {
+                  handleInstallSuccess(installationId);
+                }}
+                onUninstallSuccess={() => {
+                  setIsInstallModalOpen(false);
+                  alert(`Successfully uninstalled ${selectedProvider}.`);
+                }}
+              />
+            </div>
+          </motion.div>
+        </motion.div>
       )}
     </div>
   );

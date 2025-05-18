@@ -28,38 +28,102 @@ export const IntegrationCard = ({
 }: IntegrationCardProps) => {
   const { description, icon } = details;
   
+  const cardVariants = {
+    initial: { 
+      opacity: 0, 
+      y: 20,
+      scale: 0.95 
+    },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 260,
+        damping: 20
+      }
+    },
+    hover: {
+      scale: 1.03,
+      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
+      borderColor: connected ? 'rgba(5, 150, 105, 0.5)' : 'rgba(59, 130, 246, 0.5)',
+      transition: {
+        type: 'spring',
+        stiffness: 500,
+        damping: 40
+      }
+    }
+  };
+  
+  const iconMotion = {
+    hover: {
+      y: -3,
+      transition: {
+        yoyo: Infinity,
+        duration: 1.5,
+        ease: 'easeInOut'
+      }
+    }
+  };
+  
   return (
     <motion.div
       className="bg-white border border-gray-200 rounded-lg p-6 aspect-square flex flex-col"
-      whileHover={{ scale: 1.02 }}
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      whileHover="hover"
       transition={{ duration: 0.2 }}
     >
       <div className="mb-4">
-        <div className="w-12 h-12 overflow-hidden mb-3">
+        <motion.div 
+          className="w-12 h-12 overflow-hidden mb-3 bg-gray-50 rounded-md flex items-center justify-center"
+          variants={iconMotion}
+          whileHover="hover"
+        >
           {/* Provider Logo */}
           {icon ? (
             <img src={icon} alt={provider} className="w-full h-full object-contain" />
           ) : (
-            <div className="w-full h-full bg-gray-100 flex items-center justify-center rounded-md">
-              <span className="text-lg font-medium text-gray-500">{provider.substring(0, 2)}</span>
-            </div>
+            <span className="text-lg font-medium text-gray-500">{provider.substring(0, 2)}</span>
           )}
-        </div>
+        </motion.div>
         
         <h3 className="text-xl font-medium text-gray-900 mb-1">{provider}</h3>
         
         {connected && (
-          <div className="flex items-center mt-1">
-            <span className="h-2 w-2 bg-green-500 rounded-full mr-1.5"></span>
-            <span className="text-xs text-green-600">Connected</span>
-          </div>
+          <motion.div 
+            className="flex items-center mt-1"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <motion.span 
+              className="h-2 w-2 bg-green-500 rounded-full mr-1.5"
+              animate={{ 
+                scale: [1, 1.2, 1], 
+                opacity: [0.8, 1, 0.8] 
+              }}
+              transition={{ 
+                duration: 2, 
+                repeat: Infinity, 
+                ease: "easeInOut" 
+              }}
+            />
+            <span className="text-xs text-green-600 font-medium">Connected</span>
+          </motion.div>
         )}
       </div>
       
       <p className="text-sm text-gray-500 mb-4 flex-grow">{description}</p>
       
       {connected && lastSynced && (
-        <div className="text-xs text-gray-500 mb-3">
+        <div className="text-xs text-gray-500 mb-3 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
           Last synced: {formatTimeAgo(lastSynced)}
         </div>
       )}
@@ -67,56 +131,72 @@ export const IntegrationCard = ({
       <div className="flex mt-auto">
         {connected ? (
           <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 w-8 p-0 mr-2"
-              onClick={onSync}
-              disabled={isSyncing}
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
             >
-              {isSyncing ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <RefreshCw size={14} />
-              )}
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0 mr-2"
+                onClick={onSync}
+                disabled={isSyncing}
+              >
+                {isSyncing ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <RefreshCw size={14} className="text-blue-600" />
+                )}
+              </Button>
+            </motion.div>
+            <motion.div
+              className="flex-grow"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs h-8 w-full border-blue-200 text-blue-700 hover:bg-blue-50"
+                onClick={onConnect}
+                disabled={isConnecting}
+              >
+                {isConnecting ? (
+                  <Loader2 size={14} className="mr-1 animate-spin" />
+                ) : (
+                  <Check size={14} className="mr-1" />
+                )}
+                Disconnect
+              </Button>
+            </motion.div>
+          </>
+        ) : (
+          <motion.div
+            className="flex-grow"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
             <Button
               variant="outline"
               size="sm"
-              className="text-xs h-8 flex-grow"
+              className="text-xs h-8 w-full border-blue-200 text-blue-700 hover:bg-blue-50"
               onClick={onConnect}
               disabled={isConnecting}
             >
               {isConnecting ? (
                 <Loader2 size={14} className="mr-1 animate-spin" />
               ) : (
-                <Check size={14} className="mr-1" />
+                <Plus size={14} className="mr-1" />
               )}
-              Disconnect
+              Connect
             </Button>
-          </>
-        ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs h-8 flex-grow"
-            onClick={onConnect}
-            disabled={isConnecting}
-          >
-            {isConnecting ? (
-              <Loader2 size={14} className="mr-1 animate-spin" />
-            ) : (
-              <Plus size={14} className="mr-1" />
-            )}
-            Connect
-          </Button>
+          </motion.div>
         )}
       </div>
     </motion.div>
   );
 };
 
-// Helper function to format date to relative time
 function formatTimeAgo(date: Date): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);

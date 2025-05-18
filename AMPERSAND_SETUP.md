@@ -48,6 +48,51 @@ NEXT_PUBLIC_AMPERSAND_API_KEY=your-api-key
 
 Replace the placeholder values with your actual Ampersand project ID and API key.
 
+## UI Customization
+
+The Mini CRM application includes custom styling for the Ampersand UI components to ensure a consistent and premium user experience. Key customizations include:
+
+- Custom color scheme that matches the Mini CRM brand (blue)
+- Enhanced button and form field styling
+- Improved animations and transitions
+- Better modal layouts and interactions
+
+### CSS Variables
+
+The custom styling is achieved through CSS variables. The main customizations are in `src/styles/ampersand-custom.css`, which is imported after the base Ampersand styles.
+
+You can further customize the look and feel by modifying these variables:
+
+```css
+:root {
+  /* Primary brand colors */
+  --amp-colors-primary: #3b82f6;
+  --amp-default-border-radius: 8px;
+  
+  /* Button styling */
+  --amp-button-primary-background: #3b82f6;
+  --amp-button-primary-color: white;
+  
+  /* Form elements */
+  --amp-input-border-radius: 6px;
+  --amp-input-focus-border-color: #3b82f6;
+}
+```
+
+### Adding the CSS to Your Project
+
+To incorporate the Ampersand styling in your own application:
+
+1. Import the base Ampersand styles from the SDK
+   ```javascript
+   import '@amp-labs/react/styles';
+   ```
+
+2. Import your custom override CSS file after
+   ```javascript
+   import './path/to/your/ampersand-custom.css';
+   ```
+
 ## Integration Usage
 
 The Mini CRM application is already configured to use the Ampersand SDK through the `AmpersandContext.tsx` provider. The integration flow works as follows:
@@ -104,5 +149,6 @@ const fetchSalesforceLeads = async () => {
 - **Authentication Errors**: Make sure the user has completed the OAuth flow for the specific CRM
 - **API Errors**: Check that you're using the correct API endpoints and parameters for each CRM
 - **Header Issues**: Verify all required headers are included in your proxy API requests
+- **UI Styling Problems**: If the UI doesn't look right, make sure your custom CSS is loaded after the Ampersand base styles
 
 For more detailed information, refer to the [Ampersand Documentation](https://docs.withampersand.com). 
