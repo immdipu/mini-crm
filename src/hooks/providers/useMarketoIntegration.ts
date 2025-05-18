@@ -1,13 +1,13 @@
 import { useBoard } from '@/context/BoardContext';
 import { Lead, Status, Priority, LeadSource, FieldMapping, ImportedLead } from '@/types';
-import { callAmpersandApi } from '@/utils/ampersandApi';
 import { useIntegrationBase, UseIntegrationBaseReturn } from './useIntegrationBase';
 import { useState } from 'react';
 import { importLeads } from '@/utils/storage';
+import { marketoData, getSourceFields as getMockSourceFields, getSampleData } from '@/utils/mockData';
 
-// Define Marketo lead record
+// Define Marketo lead record shape
 interface MarketoLeadRecord {
-  id: number;
+  id: string | number;
   firstName?: string;
   lastName?: string;
   company?: string;
@@ -16,13 +16,6 @@ interface MarketoLeadRecord {
   notes?: string;
   title?: string;
   [key: string]: string | number | undefined; // Allow for dynamic fields
-}
-
-// Define Marketo API response
-interface MarketoResponse {
-  result: MarketoLeadRecord[];
-  success: boolean;
-  nextPageToken?: string;
 }
 
 // Enhanced return type with mapping functions
@@ -45,67 +38,26 @@ export const useMarketoIntegration = (): UseMarketoIntegrationReturn => {
   const [sampleData, setSampleData] = useState<Record<string, unknown>[]>([]);
   const [rawRecords, setRawRecords] = useState<MarketoLeadRecord[]>([]);
   const [isLoadingFields, setIsLoadingFields] = useState(false);
-
-  // Fetch available fields from Marketo
+  
+  // Fetch available fields from Marketo (now using mock data)
   const fetchSourceFields = async (): Promise<string[]> => {
     setIsLoadingFields(true);
     try {
-      const connectionInfo = baseIntegration.getConnectionInfo();
-    
-      if (!connectionInfo || !connectionInfo.connected) {
-        throw new Error('Marketo is not connected');
-      }
-
-      // First, get the available fields
-      const fieldsResponse = await callAmpersandApi<{ result: { name: string; displayName: string }[] }>({
-        installationId: connectionInfo.installationId,
-        endpoint: '/rest/v1/leads/describe.json'
-      });
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Extract field names
-      const fieldNames = fieldsResponse.result.map(field => field.name);
+      // Get mock fields
+      const fields = getMockSourceFields('marketo');
+      setSourceFields(fields);
       
-      // Get sample lead data with these fields
-      const response = await callAmpersandApi<MarketoResponse>({
-        installationId: connectionInfo.installationId,
-        endpoint: '/rest/v1/leads.json',
-        params: {
-          fields: fieldNames.join(','),
-          batchSize: '50'
-        }
-      });
-
-      if (!response.success) {
-        throw new Error('Failed to fetch leads from Marketo');
-      }
-
-      // Store the raw records
-      setRawRecords(response.result);
+      // Set sample data for preview (first 3 records)
+      const samples = getSampleData('marketo').slice(0, 3);
+      setSampleData(samples);
       
-      if (response.result && response.result.length > 0) {
-        // Collect all unique field names from all records
-        const allFields = new Set<string>();
-        
-        response.result.forEach(record => {
-          Object.keys(record).forEach(key => {
-            if (key !== 'id') { // Skip internal ID
-              allFields.add(key);
-            }
-          });
-        });
-        
-        const extractedFields = Array.from(allFields);
-        setSourceFields(extractedFields);
-        
-        // Create sample data for preview (up to 3 records)
-        const samples = response.result.slice(0, 3);
-        
-        setSampleData(samples);
-        
-        return extractedFields;
-      }
+      // Set raw records for later use in import
+      setRawRecords(marketoData);
       
-      return [];
+      return fields;
     } catch (error) {
       console.error('Failed to fetch Marketo fields:', error);
       throw error;
@@ -114,7 +66,7 @@ export const useMarketoIntegration = (): UseMarketoIntegrationReturn => {
     }
   };
   
-  // Fetch sample data for preview
+  // Fetch sample data for preview (using mock data)
   const fetchSampleData = async (): Promise<Record<string, unknown>[]> => {
     try {
       // If we already have sample data, return it
@@ -138,41 +90,15 @@ export const useMarketoIntegration = (): UseMarketoIntegrationReturn => {
       console.log("Initial Marketo rawRecords state:", records.length);
       
       if (records.length === 0) {
-        console.log("No Marketo records found, fetching directly");
-        // Fetch records directly
-        const connectionInfo = baseIntegration.getConnectionInfo();
+        console.log("No Marketo records found, loading mock data");
         
-        if (!connectionInfo || !connectionInfo.connected) {
-          throw new Error('Marketo is not connected');
-        }
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1200));
         
-        // First, get the available fields
-        const fieldsResponse = await callAmpersandApi<{ result: { name: string; displayName: string }[] }>({
-          installationId: connectionInfo.installationId,
-          endpoint: '/rest/v1/leads/describe.json'
-        });
-        
-        // Extract field names
-        const fieldNames = fieldsResponse.result.map(field => field.name);
-        
-        // Get lead data with these fields
-        const response = await callAmpersandApi<MarketoResponse>({
-          installationId: connectionInfo.installationId,
-          endpoint: '/rest/v1/leads.json',
-          params: {
-            fields: fieldNames.join(','),
-            batchSize: '50'
-          }
-        });
-        
-        if (!response.success || !response.result || response.result.length === 0) {
-          throw new Error("No leads found in Marketo");
-        }
-        
-        console.log(`Directly fetched ${response.result.length} Marketo leads`);
-        records = response.result;
-        // Also update state for future use
-        setRawRecords(records);
+        // Get mock data
+        const mockRecords = marketoData;
+        setRawRecords(mockRecords);
+        records = mockRecords;
       }
       
       console.log("Processing Marketo records:", records.length);
@@ -271,61 +197,52 @@ export const useMarketoIntegration = (): UseMarketoIntegrationReturn => {
         importableLeads.push(lead);
       }
       
-      console.log(`Prepared ${importableLeads.length} Marketo leads to import`);
-      
-      // Import all leads at once to avoid replacing each other
-      if (importableLeads.length > 0 && board) {
-        try {
-          // Use the importLeads function to add all leads at once
-          const { leads: updatedLeads } = importLeads(importableLeads, board, leads);
-          
-          // Convert the imported leads to Lead objects for the return value
-          const newLeads = Object.values(updatedLeads).filter(lead => {
-            // Only return newly created leads (created in the last 5 seconds)
-            return Date.now() - lead.createdAt < 5000;
-          });
-          
-          console.log("Total Marketo leads imported successfully:", newLeads.length);
-          
-          // Update last synced info
-          const connectionInfo = baseIntegration.getConnectionInfo();
-          if (connectionInfo) {
-            const storageKey = 'integration_marketo';
-            localStorage.setItem(storageKey, JSON.stringify({
-              ...connectionInfo,
-              lastSynced: new Date().toISOString()
-            }));
-          }
-          
-          return newLeads;
-        } catch (err) {
-          console.error("Error importing Marketo leads:", err);
-          throw err;
-        }
-      }
-      
-      return [];
+      // Now import these leads into our board
+      const result = importLeads(importableLeads, board, leads);
+      return Array.isArray(result) ? result : [];
     } catch (error) {
-      console.error('Failed to import Marketo records with mapping:', error);
+      console.error("Error importing leads from Marketo:", error);
       throw error;
     }
   };
-  
-  // Override the sync method to use our new mapping flow
+
+  // Override syncData method to use our importWithMapping implementation
   const syncData = async (): Promise<Lead[]> => {
-    // This function now just throws an error since we'll use importWithMapping instead
-    throw new Error('Direct sync is not supported. Please use importWithMapping with field mappings.');
+    try {
+      // Simulate connecting to Marketo and fetching data
+      await fetchSourceFields();
+      
+      // Use the default field mappings for name, email, company
+      const defaultMappings: FieldMapping[] = [
+        { sourceField: 'firstName', targetField: 'name', required: false, dataType: 'string' },
+        { sourceField: 'lastName', targetField: 'name', required: false, dataType: 'string' },
+        { sourceField: 'email', targetField: 'email', required: false, dataType: 'string' },
+        { sourceField: 'company', targetField: 'company', required: true, dataType: 'string' },
+        { sourceField: 'phone', targetField: 'phone', required: false, dataType: 'string' },
+        { sourceField: 'notes', targetField: 'notes', required: false, dataType: 'string' },
+        { sourceField: 'leadStatus', targetField: 'status', required: false, dataType: 'string' },
+        { sourceField: 'source', targetField: 'leadSource', required: false, dataType: 'string' },
+      ];
+      
+      // Import the data with our default mappings
+      const result = await importWithMapping(defaultMappings);
+      return Array.isArray(result) ? result : [];
+      
+    } catch (error) {
+      console.error("Error syncing data from Marketo:", error);
+      throw error;
+    }
   };
 
   return {
     ...baseIntegration,
-    syncData,
     fetchSourceFields,
     fetchSampleData,
     importWithMapping,
     sourceFields,
     sampleData,
     isLoadingFields,
-    rawRecords
+    rawRecords,
+    syncData,
   };
 }; 

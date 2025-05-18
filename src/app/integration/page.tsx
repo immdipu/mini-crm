@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IntegrationCard } from "@/components/integration/IntegrationCard";
 import {
-  useAmpersand,
+  useIntegration,
   IntegrationProvider,
-  AmpersandProvider,
-} from "@/context/AmpersandContext";
+  IntegrationProvider as IntegrationProviderComponent,
+} from "@/context/IntegrationContext";
 import { 
   useSalesforceIntegration, 
   useHubSpotIntegration, 
@@ -15,11 +15,9 @@ import {
   useMarketoIntegration,
   UseIntegrationBaseReturn
 } from "@/hooks/providers";
-import { InstallIntegration } from "@amp-labs/react";
-import "@amp-labs/react/styles";
-import "@/styles/ampersand-custom.css";
 import { IntegrationFieldMappingModal } from '@/components/integration/IntegrationFieldMappingModal';
 import { FieldMapping } from "@/types";
+import { v4 as uuidv4 } from 'uuid';
 
 // Define a custom interface that extends the base return type with mapping functions
 interface MappingEnabledIntegration extends UseIntegrationBaseReturn {
@@ -34,9 +32,9 @@ interface MappingEnabledIntegration extends UseIntegrationBaseReturn {
 
 export default function IntegrationPage() {
   return (
-    <AmpersandProvider>
+    <IntegrationProviderComponent>
       <IntegrationPageContent />
-    </AmpersandProvider>
+    </IntegrationProviderComponent>
   );
 }
 
@@ -44,7 +42,7 @@ function IntegrationPageContent() {
   const {
     providers,
     providerDetails,
-  } = useAmpersand();
+  } = useIntegration();
 
   // Provider-specific hooks
   const salesforceIntegration = useSalesforceIntegration();
@@ -97,11 +95,9 @@ function IntegrationPageContent() {
     console.log("Provider details:", providerDetails);
   }, [providers, providerDetails]);
 
-  const [selectedProvider, setSelectedProvider] = useState<IntegrationProvider | null>(null);
-  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
   const [syncingProvider, setSyncingProvider] = useState<IntegrationProvider | null>(null);
+  const [connectingProvider, setConnectingProvider] = useState<IntegrationProvider | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [installationId, setInstallationId] = useState<string | null>(null);
 
   // Add new state for field mapping modal
   const [showFieldMappingModal, setShowFieldMappingModal] = useState(false);
@@ -132,51 +128,7 @@ function IntegrationPageContent() {
     }
   };
 
-  // Effect to handle connection after modal is closed
-  useEffect(() => {
-    const connectAfterInstall = async () => {
-      if (installationId && selectedProvider && !isInstallModalOpen) {
-        console.log(
-          `Connecting provider ${selectedProvider} with installation ID: ${installationId}`
-        );
-
-        try {
-          const integrationHook = getIntegrationHook(selectedProvider);
-          if (!integrationHook) {
-            throw new Error(`No integration hook available for ${selectedProvider}`);
-          }
-          
-          const success = await integrationHook.connect(installationId);
-          if (success) {
-            // Update client-side state after successful connection
-            setConnectionInfo(prev => ({
-              ...prev,
-              [selectedProvider]: {
-                connected: true,
-                lastSynced: new Date()
-              }
-            }));
-            
-            showSuccessMessage(
-              `Successfully connected to ${selectedProvider}. Click the sync button to import leads.`
-            );
-          } else {
-            alert(`Failed to connect to ${selectedProvider}.`);
-          }
-        } catch (error) {
-          console.error("Error connecting provider:", error);
-          alert(`Error connecting to ${selectedProvider}.`);
-        } finally {
-          // Reset installation ID after connection attempt
-          setInstallationId(null);
-        }
-      }
-    };
-
-    connectAfterInstall();
-  }, [installationId, selectedProvider, isInstallModalOpen]);
-
-  const handleConnectClick = (provider: IntegrationProvider) => {
+  const handleConnectClick = async (provider: IntegrationProvider) => {
     const integrationHook = getIntegrationHook(provider);
 
     if (!integrationHook) {
@@ -203,9 +155,39 @@ function IntegrationPageContent() {
         }
       });
     } else {
-      // Connect the provider - open the InstallIntegration component
-      setSelectedProvider(provider);
-      setIsInstallModalOpen(true);
+      // Connect the provider - simplified version with mock installation ID
+      setConnectingProvider(provider);
+      
+      try {
+        // Generate a mock installation ID
+        const mockInstallationId = provider.substring(0, 3).toUpperCase() + '-' + uuidv4().substring(0, 8);
+        
+        // Small delay to simulate connection process
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        const success = await integrationHook.connect(mockInstallationId);
+        if (success) {
+          // Update client-side state after successful connection
+          setConnectionInfo(prev => ({
+            ...prev,
+            [provider]: {
+              connected: true,
+              lastSynced: new Date()
+            }
+          }));
+          
+          showSuccessMessage(
+            `Successfully connected to ${provider}. Click the sync button to import leads.`
+          );
+        } else {
+          alert(`Failed to connect to ${provider}.`);
+        }
+      } catch (error) {
+        console.error("Error connecting provider:", error);
+        alert(`Error connecting to ${provider}.`);
+      } finally {
+        setConnectingProvider(null);
+      }
     }
   };
 
@@ -288,40 +270,6 @@ function IntegrationPageContent() {
     }
   };
 
-  const handleInstallSuccess = (id: string) => {
-    console.log("Installation successful for provider: ", selectedProvider);
-    console.log(`Installation successful with ID: ${id}`);
-    setInstallationId(id);
-    setIsInstallModalOpen(false);
-  };
-
-  const handleUninstallSuccess = () => {
-    console.log(`Uninstallation successful for provider: ${selectedProvider}`);
-    setIsInstallModalOpen(false);
-    if (selectedProvider) {
-      const integrationHook = getIntegrationHook(selectedProvider);
-      if (integrationHook) {
-        integrationHook.disconnect().then(() => {
-          // Update client-side state after uninstallation
-          setConnectionInfo(prev => ({
-            ...prev,
-            [selectedProvider]: {
-              connected: false,
-              lastSynced: undefined
-            }
-          }));
-          
-          showSuccessMessage(`Successfully uninstalled ${selectedProvider}.`);
-        });
-      }
-    }
-  };
-
-  // Get the selected provider's integration name
-  const selectedProviderDetails = selectedProvider
-    ? providerDetails.find((p) => p.name === selectedProvider)
-    : null;
-
   // Count connected providers
   const connectedCount = isClientSide 
     ? Object.values(connectionInfo).filter(info => info.connected).length
@@ -398,92 +346,30 @@ function IntegrationPageContent() {
                     lastSynced={providerConnectionInfo.lastSynced}
                     onConnect={() => handleConnectClick(provider.name)}
                     onSync={() => handleSyncClick(provider.name)}
-                    isConnecting={integrationHook?.isConnecting || false}
-                    isSyncing={syncingProvider === provider.name || integrationHook?.isSyncing || false}
+                    isConnecting={connectingProvider === provider.name || (integrationHook?.isConnecting ?? false)}
+                    isSyncing={syncingProvider === provider.name || (integrationHook?.isSyncing ?? false)}
                   />
                 );
               })}
             </div>
           </div>
-
-          <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-700">
-            <p className="font-medium mb-1">
-              Seamless Integration with Ampersand
-            </p>
-            <p>
-              We use Ampersand to securely connect with your favorite CRM
-              platforms. No data is stored on our servers, and all connections
-              are end-to-end encrypted.
-            </p>
-          </div>
         </div>
       </motion.div>
 
-      {isInstallModalOpen && selectedProvider && selectedProviderDetails && (
-        <motion.div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <motion.div
-            className="bg-white w-full max-w-xl max-h-[90vh] overflow-auto rounded-lg shadow-xl relative"
-            initial={{ scale: 0.95, y: 10 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.95, y: 10 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            <button
-              onClick={() => setIsInstallModalOpen(false)}
-              className="absolute top-3 right-3 z-50 opacity-40 hover:opacity-100 transition-colors rounded-full p-1.5"
-              aria-label="Close"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-            <div className="w-full py-5 h-full">
-                <InstallIntegration
-                  integration={selectedProviderDetails.integrationName}
-                  consumerRef="user-123"
-                  consumerName="John Doe"
-                  groupRef="org-123"
-                  groupName="Mini CRM Organization"
-                  onInstallSuccess={handleInstallSuccess}
-                  onUpdateSuccess={handleInstallSuccess}
-                  onUninstallSuccess={handleUninstallSuccess}
-                />
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-
-      {/* Field Mapping Modal */}
-      {showFieldMappingModal && currentProvider && (
+      {/* Field mapping modal */}
+      {showFieldMappingModal && activeIntegrationHook && (
         <IntegrationFieldMappingModal
           isOpen={showFieldMappingModal}
+          providerName={currentProvider || 'Provider'}
+          sourceFields={providerSourceFields}
+          isLoadingFields={isLoadingFields}
           onClose={() => {
             setShowFieldMappingModal(false);
-            setCurrentProvider(null);
             setProviderSourceFields([]);
+            setCurrentProvider(null);
             setActiveIntegrationHook(null);
           }}
           onComplete={handleFieldMappingComplete}
-          sourceFields={providerSourceFields}
-          providerName={currentProvider}
-          isLoadingFields={isLoadingFields}
         />
       )}
     </div>

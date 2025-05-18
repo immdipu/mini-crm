@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Plus, Check, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { IntegrationProvider, ProviderDetails } from '@/context/AmpersandContext';
+import { IntegrationProvider, ProviderDetails } from '@/context/IntegrationContext';
 import { useState, useEffect } from 'react';
 
 interface IntegrationCardProps {
@@ -33,6 +33,7 @@ export const IntegrationCard = ({
   const [isClient, setIsClient] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | undefined>(undefined);
+  const [timeAgo, setTimeAgo] = useState<string>('');
 
   // Only update client-side state after initial render to prevent hydration errors
   useEffect(() => {
@@ -40,6 +41,36 @@ export const IntegrationCard = ({
     setIsConnected(connected);
     setLastSyncTime(lastSynced);
   }, [connected, lastSynced]);
+  
+  // Calculate how long ago the provider was synced
+  useEffect(() => {
+    if (!lastSynced) {
+      setTimeAgo('');
+      return;
+    }
+
+    const updateTimeAgo = () => {
+      const now = new Date();
+      const diffSeconds = Math.floor((now.getTime() - lastSynced.getTime()) / 1000);
+
+      if (diffSeconds < 60) {
+        setTimeAgo('just now');
+      } else if (diffSeconds < 3600) {
+        const minutes = Math.floor(diffSeconds / 60);
+        setTimeAgo(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`);
+      } else if (diffSeconds < 86400) {
+        const hours = Math.floor(diffSeconds / 3600);
+        setTimeAgo(`${hours} ${hours === 1 ? 'hour' : 'hours'} ago`);
+      } else {
+        const days = Math.floor(diffSeconds / 86400);
+        setTimeAgo(`${days} ${days === 1 ? 'day' : 'days'} ago`);
+      }
+    };
+
+    updateTimeAgo();
+    const interval = setInterval(updateTimeAgo, 60000);
+    return () => clearInterval(interval);
+  }, [lastSynced]);
   
   const cardVariants = {
     initial: { 
@@ -136,7 +167,7 @@ export const IntegrationCard = ({
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
-          Last synced: {formatTimeAgo(lastSyncTime)}
+          Last synced: {timeAgo}
         </div>
       )}
       
@@ -209,41 +240,4 @@ export const IntegrationCard = ({
       </div>
     </motion.div>
   );
-};
-
-function formatTimeAgo(date: Date): string {
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) {
-    return 'just now';
-  }
-  
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) {
-    return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) {
-    return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) {
-    return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInWeeks = Math.floor(diffInDays / 7);
-  if (diffInWeeks < 4) {
-    return `${diffInWeeks} week${diffInWeeks > 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInMonths = Math.floor(diffInDays / 30);
-  if (diffInMonths < 12) {
-    return `${diffInMonths} month${diffInMonths > 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInYears = Math.floor(diffInDays / 365);
-  return `${diffInYears} year${diffInYears > 1 ? 's' : ''} ago`;
-} 
+}; 

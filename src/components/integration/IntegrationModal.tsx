@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { ModalDialog } from '@/components/ui/ModalDialog';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
-import { IntegrationProvider } from '@/context/AmpersandContext';
+import { IntegrationProvider } from '@/context/IntegrationContext';
 
-interface AmpersandModalProps {
+interface IntegrationModalProps {
   isOpen: boolean;
   onClose: () => void;
   provider: IntegrationProvider;
@@ -14,13 +14,13 @@ interface AmpersandModalProps {
   onFailure: () => void;
 }
 
-export const AmpersandModal = ({ 
+export const IntegrationModal = ({ 
   isOpen, 
   onClose, 
   provider,
   onSuccess,
   onFailure
-}: AmpersandModalProps) => {
+}: IntegrationModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -29,8 +29,7 @@ export const AmpersandModal = ({
     setError(null);
     
     try {
-      // In a real application, this would use the Ampersand SDK to authenticate
-      // For now, just simulate a successful authentication after a delay
+      // Simulate authentication after a delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Simulate success

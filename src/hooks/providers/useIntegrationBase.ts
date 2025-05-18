@@ -1,18 +1,21 @@
 import { useState } from 'react';
+import { IntegrationProvider } from '@/context/IntegrationContext';
 import { Lead } from '@/types';
-import { IntegrationProvider } from '@/context/AmpersandContext';
 
-interface IntegrationStorage {
-  installationId: string;
+// Structure for storing integration settings in localStorage
+export interface IntegrationStorage {
   connected: boolean;
-  lastSynced?: string;
+  lastSynced: string;
+  installationId: string;
   configDetails?: Record<string, unknown>;
 }
 
+// Props for the base hook
 export interface UseIntegrationBaseProps {
   provider: IntegrationProvider;
 }
 
+// Return type for the base hook
 export interface UseIntegrationBaseReturn {
   isConnecting: boolean;
   isSyncing: boolean;
@@ -77,7 +80,7 @@ export const useIntegrationBase = ({ provider }: UseIntegrationBaseProps): UseIn
     }
   };
 
-  // Connect to a provider
+  // Connect to a provider - just mock the connection with delay
   const connect = async (
     installationId: string, 
     configDetails?: Record<string, unknown>
@@ -85,7 +88,10 @@ export const useIntegrationBase = ({ provider }: UseIntegrationBaseProps): UseIn
     setIsConnecting(true);
     
     try {
-      // Save connection info to localStorage
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mock a successful connection
       saveConnectionInfo({
         installationId,
         connected: true,
@@ -102,10 +108,13 @@ export const useIntegrationBase = ({ provider }: UseIntegrationBaseProps): UseIn
     }
   };
 
-  // Disconnect from a provider
+  // Disconnect from a provider - just remove from localStorage
   const disconnect = async (): Promise<boolean> => {
     try {
-      // Remove connection info from localStorage
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Just remove from localStorage
       saveConnectionInfo(null);
       
       return true;
@@ -115,18 +124,14 @@ export const useIntegrationBase = ({ provider }: UseIntegrationBaseProps): UseIn
     }
   };
 
-  // Sync data from a provider
+  // This is a stub - will be overridden by specific provider hooks
   const syncData = async (): Promise<Lead[]> => {
     setIsSyncing(true);
     
     try {
-      const connectionInfo = getConnectionInfo();
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      if (!connectionInfo || !connectionInfo.connected) {
-        throw new Error(`Provider ${provider} is not connected`);
-      }
-      
-      // This is a base implementation - will be overridden by specific provider hooks
       return [];
     } catch (error) {
       console.error(`Failed to sync data from ${provider}:`, error);

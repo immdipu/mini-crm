@@ -1,26 +1,24 @@
 import { useBoard } from '@/context/BoardContext';
 import { Lead, Status, Priority, LeadSource, FieldMapping, ImportedLead } from '@/types';
-import { callAmpersandApi } from '@/utils/ampersandApi';
 import { useIntegrationBase, UseIntegrationBaseReturn } from './useIntegrationBase';
 import { useState } from 'react';
 import { importLeads } from '@/utils/storage';
+import { hubspotData, getSourceFields as getMockSourceFields, getSampleData } from '@/utils/mockData';
 
-// Define HubSpot contact properties
-interface HubSpotContactProperties {
-  firstname?: string;
-  lastname?: string;
-  company?: string;
-  email?: string;
-  phone?: string;
-  notes?: string;
-  jobtitle?: string;
-  [key: string]: string | undefined; // Allow for dynamic fields
-}
-
-// Define HubSpot contact record
-interface HubSpotContact {
+// Define HubSpot contact record shape
+interface HubSpotContactRecord {
   id: string;
-  properties: HubSpotContactProperties;
+  properties: {
+    firstname?: string;
+    lastname?: string;
+    company?: string;
+    email?: string;
+    phone?: string;
+    notes?: string;
+    hs_lead_status?: string;
+    priority?: string;
+    [key: string]: string | undefined;
+  };
 }
 
 // Enhanced return type with mapping functions
@@ -31,7 +29,7 @@ interface UseHubSpotIntegrationReturn extends UseIntegrationBaseReturn {
   sourceFields: string[];
   sampleData: Record<string, unknown>[];
   isLoadingFields: boolean;
-  rawRecords: HubSpotContact[];
+  rawRecords: HubSpotContactRecord[];
 }
 
 export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
@@ -41,66 +39,28 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
   // Add state for field mapping flow
   const [sourceFields, setSourceFields] = useState<string[]>([]);
   const [sampleData, setSampleData] = useState<Record<string, unknown>[]>([]);
-  const [rawRecords, setRawRecords] = useState<HubSpotContact[]>([]);
+  const [rawRecords, setRawRecords] = useState<HubSpotContactRecord[]>([]);
   const [isLoadingFields, setIsLoadingFields] = useState(false);
 
-  // Fetch available fields from HubSpot
+  // Fetch available fields from HubSpot (now using mock data)
   const fetchSourceFields = async (): Promise<string[]> => {
     setIsLoadingFields(true);
     try {
-      const connectionInfo = baseIntegration.getConnectionInfo();
-    
-      if (!connectionInfo || !connectionInfo.connected) {
-        throw new Error('HubSpot is not connected');
-      }
-
-      // Call HubSpot API to get available contact properties
-      const propertiesResponse = await callAmpersandApi<{ results: { name: string; label: string }[] }>({
-        installationId: connectionInfo.installationId,
-        endpoint: '/crm/v3/properties/contacts',
-      });
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Extract property names
-      const propertyNames = propertiesResponse.results.map(prop => prop.name);
+      // Get mock fields
+      const fields = getMockSourceFields('hubspot');
+      setSourceFields(fields);
       
-      // Get sample contact data with these properties
-      const response = await callAmpersandApi<{ results: HubSpotContact[] }>({
-        installationId: connectionInfo.installationId,
-        endpoint: '/crm/v3/objects/contacts',
-        params: {
-          limit: '50',
-          properties: propertyNames.join(',')
-        }
-      });
-
-      // Store the raw records
-      setRawRecords(response.results);
+      // Set sample data for preview (first 3 records)
+      const samples = getSampleData('hubspot').slice(0, 3);
+      setSampleData(samples);
       
-      if (response.results && response.results.length > 0) {
-        // In HubSpot, we need to extract property names from the first contact's properties
-        const allFields = new Set<string>();
-        
-        response.results.forEach(contact => {
-          Object.keys(contact.properties).forEach(key => {
-            allFields.add(key);
-          });
-        });
-        
-        const fieldNames = Array.from(allFields);
-        setSourceFields(fieldNames);
-        
-        // Create sample data for preview (up to 3 records)
-        const samples = response.results.slice(0, 3).map(contact => {
-          // Flatten the contact properties for preview
-          return { id: contact.id, ...contact.properties };
-        });
-        
-        setSampleData(samples);
-        
-        return fieldNames;
-      }
+      // Set raw records for later use in import
+      setRawRecords(hubspotData);
       
-      return [];
+      return fields;
     } catch (error) {
       console.error('Failed to fetch HubSpot fields:', error);
       throw error;
@@ -109,7 +69,7 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
     }
   };
   
-  // Fetch sample data for preview
+  // Fetch sample data for preview (using mock data)
   const fetchSampleData = async (): Promise<Record<string, unknown>[]> => {
     try {
       // If we already have sample data, return it
@@ -132,62 +92,29 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
       let records = rawRecords;
       console.log("Initial HubSpot rawRecords state:", records.length);
       
+      // If we don't have raw records yet, get them
       if (records.length === 0) {
-        console.log("No HubSpot records found, fetching directly");
-        // Fetch records directly
-        const connectionInfo = baseIntegration.getConnectionInfo();
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1200));
         
-        if (!connectionInfo || !connectionInfo.connected) {
-          throw new Error('HubSpot is not connected');
-        }
-        
-        // Get available contact properties first
-        const propertiesResponse = await callAmpersandApi<{ results: { name: string; label: string }[] }>({
-          installationId: connectionInfo.installationId,
-          endpoint: '/crm/v3/properties/contacts',
-        });
-        
-        // Extract property names
-        const propertyNames = propertiesResponse.results.map(prop => prop.name);
-        
-        // Now get sample contact data with these properties
-        const response = await callAmpersandApi<{ results: HubSpotContact[] }>({
-          installationId: connectionInfo.installationId,
-          endpoint: '/crm/v3/objects/contacts',
-          params: {
-            limit: '50',
-            properties: propertyNames.join(',')
-          }
-        });
-        
-        if (!response.results || response.results.length === 0) {
-          throw new Error("No contacts found in HubSpot");
-        }
-        
-        console.log(`Directly fetched ${response.results.length} HubSpot contacts`);
-        records = response.results;
-        // Also update state for future use
-        setRawRecords(records);
+        // Get mock data
+        const mockRecords = hubspotData;
+        setRawRecords(mockRecords);
+        records = mockRecords;
       }
       
       console.log("Processing HubSpot records:", records.length);
       
-      // Convert HubSpot contacts to ImportedLead format
+      // Convert HubSpot records to ImportedLead format
       const importableLeads: ImportedLead[] = [];
       
-      for (const contact of records) {
-        // Create lead with required defaults - extract useful names
-        const firstName = contact.properties.firstname || '';
-        const lastName = contact.properties.lastname || '';
-        const fullName = firstName && lastName ? `${firstName} ${lastName}` : (firstName || lastName || 'Unknown Lead');
-        
+      for (const record of records) {
+        // Create lead with required defaults
         const lead: ImportedLead = {
-          name: fullName,
-          company: contact.properties.company || "Unknown Company",
+          name: (record.properties.firstname ? record.properties.firstname + ' ' : '') + (record.properties.lastname || 'Unknown'),
+          company: record.properties.company || "Unknown Company",
           priority: 'medium' as Priority,
-          notes: contact.properties.notes || "",
-          email: contact.properties.email,
-          phone: contact.properties.phone,
+          notes: record.properties.notes || "",
         };
         
         // Apply mappings
@@ -196,7 +123,7 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
               mapping.sourceField !== '_empty' && 
               mapping.targetField !== '_empty') {
             
-            const fieldValue = contact.properties[mapping.sourceField];
+            const fieldValue = record.properties[mapping.sourceField];
             console.log(`Mapping ${mapping.sourceField} to ${mapping.targetField}, value:`, fieldValue);
             
             if (fieldValue !== undefined && fieldValue !== null) {
@@ -210,6 +137,16 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
                   const statusValue = String(fieldValue).toLowerCase();
                   if (['new', 'contacted', 'qualified', 'won', 'lost'].includes(statusValue)) {
                     lead.status = statusValue as Status;
+                  } else if (fieldValue === 'NEW') {
+                    lead.status = 'new';
+                  } else if (fieldValue === 'OPEN') {
+                    lead.status = 'contacted';
+                  } else if (fieldValue === 'IN_PROGRESS') {
+                    lead.status = 'qualified';
+                  } else if (fieldValue === 'CLOSED_WON') {
+                    lead.status = 'won';
+                  } else if (fieldValue === 'CLOSED_LOST') {
+                    lead.status = 'lost';
                   }
                 } 
                 // For priority field, ensure it's a valid enum value
@@ -226,22 +163,27 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
                     lead.leadSource = sourceValue as LeadSource;
                   }
                 }
-                // For specific fields
+                // For email field
                 else if (mapping.targetField === 'email') {
                   lead.email = String(fieldValue);
                 }
+                // For phone field
                 else if (mapping.targetField === 'phone') {
                   lead.phone = String(fieldValue);
                 }
+                // For notes field
                 else if (mapping.targetField === 'notes') {
                   lead.notes = String(fieldValue);
                 }
+                // For assignedTo field
                 else if (mapping.targetField === 'assignedTo') {
                   lead.assignedTo = String(fieldValue);
                 }
+                // For name field
                 else if (mapping.targetField === 'name') {
                   lead.name = String(fieldValue);
                 }
+                // For company field
                 else if (mapping.targetField === 'company') {
                   lead.company = String(fieldValue);
                 }
@@ -266,50 +208,50 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
         importableLeads.push(lead);
       }
       
-      console.log(`Prepared ${importableLeads.length} HubSpot leads to import`);
+      // Now import these leads into our board
+      const result = importLeads(importableLeads, board, leads);
       
-      // Import all leads at once to avoid replacing each other
-      if (importableLeads.length > 0 && board) {
-        try {
-          // Use the importLeads function to add all leads at once
-          const { leads: updatedLeads } = importLeads(importableLeads, board, leads);
-          
-          // Convert the imported leads to Lead objects for the return value
-          const newLeads = Object.values(updatedLeads).filter(lead => {
-            // Only return newly created leads (created in the last 5 seconds)
-            return Date.now() - lead.createdAt < 5000;
-          });
-          
-          console.log("Total HubSpot leads imported successfully:", newLeads.length);
-          
-          // Update last synced info
-          const connectionInfo = baseIntegration.getConnectionInfo();
-          if (connectionInfo) {
-            const storageKey = 'integration_hubspot';
-            localStorage.setItem(storageKey, JSON.stringify({
-              ...connectionInfo,
-              lastSynced: new Date().toISOString()
-            }));
-          }
-          
-          return newLeads;
-        } catch (err) {
-          console.error("Error importing HubSpot leads:", err);
-          throw err;
-        }
-      }
-      
-      return [];
+      return Object.values(result.leads).filter(lead => 
+        importableLeads.some(importedLead => 
+          lead.name === importedLead.name && 
+          lead.company === importedLead.company
+        )
+      );
     } catch (error) {
-      console.error('Failed to import HubSpot records with mapping:', error);
+      console.error('Error importing HubSpot leads:', error);
       throw error;
     }
   };
-  
-  // Override the sync method to use our new mapping flow
+
+  // Sync data from HubSpot (using mock data)
   const syncData = async (): Promise<Lead[]> => {
-    // This function now just throws an error since we'll use importWithMapping instead
-    throw new Error('Direct sync is not supported. Please use importWithMapping with field mappings.');
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Set raw records for use in importing
+      if (rawRecords.length === 0) {
+        setRawRecords(hubspotData);
+      }
+      
+      // Create default mappings for direct import
+      const defaultMappings: FieldMapping[] = [
+        { sourceField: 'firstname', targetField: 'name', required: true, dataType: 'string' },
+        { sourceField: 'lastname', targetField: 'name', required: true, dataType: 'string' },
+        { sourceField: 'company', targetField: 'company', required: true, dataType: 'string' },
+        { sourceField: 'email', targetField: 'email', required: false, dataType: 'string' },
+        { sourceField: 'phone', targetField: 'phone', required: false, dataType: 'string' },
+        { sourceField: 'notes', targetField: 'notes', required: false, dataType: 'string' },
+        { sourceField: 'hs_lead_status', targetField: 'status', required: false, dataType: 'enum', enumValues: ['new', 'contacted', 'qualified', 'won', 'lost'] },
+        { sourceField: 'priority', targetField: 'priority', required: false, dataType: 'enum', defaultValue: 'medium', enumValues: ['low', 'medium', 'high'] }
+      ];
+      
+      // Import the leads with our default mapping
+      return await importWithMapping(defaultMappings);
+    } catch (error) {
+      console.error('Failed to sync data from HubSpot:', error);
+      throw error;
+    }
   };
 
   return {

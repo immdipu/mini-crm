@@ -3,8 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/ui/Navigation";
 import { BoardProvider } from "@/context/BoardContext";
-import { AmpersandProvider } from "@/context/AmpersandContext";
-
+import { IntegrationProvider } from "@/context/IntegrationContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +14,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Mini CRM",
-  description: "A Kanban-style CRM board for managing sales leads",
+  title: "Mini CRM Board",
+  description: "A simple CRM for managing leads and contacts",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
@@ -31,10 +30,10 @@ export default function RootLayout({
         className="font-sans antialiased text-gray-900 bg-[#f8f9fa]"
       >
         <BoardProvider>
-          <AmpersandProvider>
+          <IntegrationProvider>
             <Navigation />
             {children}
-          </AmpersandProvider>
+          </IntegrationProvider>
         </BoardProvider>
       </body>
     </html>

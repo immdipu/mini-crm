@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mini CRM Board
+
+A simple CRM board application built with Next.js, Tailwind CSS, and React, designed for hackathons and demos.
+
+## Features
+
+- Drag-and-drop CRM board with columns: New, Contacted, Qualified, Won, Lost
+- Add, edit, and delete leads
+- Reorder leads within columns
+- Integration with mock data providers (Salesforce, HubSpot, Marketo, Airtable)
+- Field mapping for data import
+- CSV import
+- Data persistence in localStorage
+
+## Hackathon Mode
+
+This application is designed to be used in hackathons where only frontend functionality matters. The integrations with CRM providers are **mocked** for demonstration purposes:
+
+- Each provider has predefined sample data
+- When you "connect" to a provider, it simulates the connection process
+- No actual API calls are made to external services
+- The mapping functionality works with the mock data
+- All state is stored in localStorage
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Run the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build for production
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Integration Process
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Go to the Integration page
+2. Click "Connect" on any provider card
+3. The app will simulate connecting to the service
+4. Once connected, click "Sync" to load the mock data
+5. Map the fields from the provider to the CRM fields
+6. Import the data to your board
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Data Storage
 
-## Learn More
+All data is stored in your browser's localStorage, so no backend is required. The app includes:
 
-To learn more about Next.js, take a look at the following resources:
+- Board state (columns and leads)
+- Connection status for each provider
+- Team members
+- Mapping templates
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Implementation Details
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The mock integrations are implemented in:
+- `src/utils/mockData.ts` - Contains sample data for each provider
+- `src/hooks/providers/` - Provider-specific hooks that use mock data
+- `src/context/IntegrationContext.tsx` - Context for managing integration state
 
-## Deploy on Vercel
+## Adding More Mock Data
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+To add more mock data for a provider, edit the corresponding array in `src/utils/mockData.ts`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+MIT
