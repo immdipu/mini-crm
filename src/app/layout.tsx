@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   title: "Mini CRM Board",
   description: "A simple CRM for managing leads and contacts",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  icons: {
+    icon: [
+      { url: '/favicon.svg' }
+    ],
+  }
 };
 
 export default function RootLayout({
@@ -26,6 +31,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={geistSans.variable}>
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+      </head>
       <body
         className="font-sans antialiased text-gray-900 bg-[#f8f9fa]"
       >

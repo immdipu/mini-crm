@@ -39,10 +39,10 @@ export const Navigation = () => {
 
   const links = [
     {
-      href: '/',
+      href: '/board',
       label: 'Board',
       icon: LayoutGrid,
-      active: pathname === '/',
+      active: pathname === '/board',
     },
     {
       href: '/team',
@@ -58,6 +58,10 @@ export const Navigation = () => {
     }
   ];
 
+  // Don't show the Add Lead button on the landing page
+  const showLeadActions = pathname !== '/';
+  const isLandingPage = pathname === '/';
+
   return (
     <>
       <header
@@ -67,58 +71,69 @@ export const Navigation = () => {
           <div className="flex items-center justify-between w-full">
             <h1 className="text-lg font-medium">Sales CRM Board</h1>
 
-            <div className="backdrop-blur-md bg-white/80 rounded-full px-1 py-1 flex items-center gap-1 border border-gray-200">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="relative"
-                >
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-1.5 rounded-full transition-all",
-                      link.active
-                        ? "text-white"
-                        : "text-gray-500 hover:text-gray-700"
-                    )}
+            {isLandingPage ? (
+              <Link href="/board">
+                <Button size="sm">
+                  <LayoutGrid size={15} className="mr-1" />
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <div className="backdrop-blur-md bg-white/80 rounded-full px-1 py-1 flex items-center gap-1 border border-gray-200">
+                {links.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="relative"
                   >
-                    <link.icon size={15} strokeWidth={1.8} />
-                    <span className="text-xs font-medium">{link.label}</span>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={cn(
+                        "flex items-center gap-2 px-4 py-1.5 rounded-full transition-all",
+                        link.active
+                          ? "text-white"
+                          : "text-gray-500 hover:text-gray-700"
+                      )}
+                    >
+                      <link.icon size={15} strokeWidth={1.8} />
+                      <span className="text-xs font-medium">{link.label}</span>
 
-                    {link.active && (
-                      <motion.div
-                        layoutId="active-pill"
-                        className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full -z-10 shadow-md"
-                        initial={false}
-                        transition={{
-                          type: "spring",
-                          bounce: 0.2,
-                          duration: 0.6
-                        }}
-                      />
-                    )}
-                  </motion.div>
-                </Link>
-              ))}
-            </div>
+                      {link.active && (
+                        <motion.div
+                          layoutId="active-pill"
+                          className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full -z-10 shadow-md"
+                          initial={false}
+                          transition={{
+                            type: "spring",
+                            bounce: 0.2,
+                            duration: 0.6
+                          }}
+                        />
+                      )}
+                    </motion.div>
+                  </Link>
+                ))}
+              </div>
+            )}
 
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setIsImportModalOpen(true)}>
-                <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                </svg>
-                Import
-              </Button>
+            {showLeadActions && (
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setIsImportModalOpen(true)}>
+                  <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                  </svg>
+                  Import
+                </Button>
 
-              <Button size="sm" onClick={() => handleAddLead()}>
-                <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Add Lead
-              </Button>
-            </div>
+                <Button size="sm" onClick={() => handleAddLead()}>
+                  <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Lead
+                </Button>
+              </div>
+            )}
           </div>
         </Container>
       </header>

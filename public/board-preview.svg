@@ -1,0 +1,248 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <!-- Gradient Background -->
+  <defs>
+    <linearGradient id="headerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f9fafb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f3f4f6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cardGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f9fafb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="priorityGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="activeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4338ca;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0f172a" flood-opacity="0.05"/>
+    </filter>
+  </defs>
+
+  <!-- Main Background -->
+  <rect width="1200" height="675" fill="#f8f9fa" />
+  
+  <!-- Top Navigation -->
+  <rect x="0" y="0" width="1200" height="60" fill="url(#headerGradient)" />
+  <rect x="0" y="59" width="1200" height="1" fill="#e5e7eb" />
+  
+  <!-- Logo & Nav -->
+  <text x="30" y="38" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#111827">Sales CRM Board</text>
+  
+  <!-- Navigation pills -->
+  <rect x="500" y="15" width="320" height="32" rx="16" fill="#ffffff" fill-opacity="0.9" stroke="#e5e7eb" stroke-width="1" />
+  <rect x="502" y="17" width="90" height="28" rx="14" fill="url(#activeGradient)" />
+  <text x="525" y="35" font-family="Arial, sans-serif" font-size="12" fill="#ffffff">Board</text>
+  <text x="595" y="35" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">Team</text>
+  <text x="655" y="35" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">Integration</text>
+  
+  <!-- Action buttons -->
+  <rect x="980" y="15" width="80" height="30" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1" />
+  <text x="1005" y="35" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">Import</text>
+  
+  <rect x="1070" y="15" width="100" height="30" rx="6" fill="url(#activeGradient)" />
+  <text x="1095" y="35" font-family="Arial, sans-serif" font-size="12" fill="#ffffff">Add Lead</text>
+  
+  <!-- Board Layout with Shadow -->
+  <g filter="url(#shadow)">
+    <!-- New Column -->
+    <rect x="20" y="80" width="280" height="560" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+    <rect x="20" y="80" width="280" height="50" rx="8" fill="#f1f5f9" />
+    <text x="40" y="112" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#334155">New</text>
+    <rect x="90" y="96" width="30" height="25" rx="12" fill="#e2e8f0" />
+    <text x="105" y="114" font-family="Arial, sans-serif" font-size="13" fill="#64748b">3</text>
+    
+    <!-- New Lead Button -->
+    <rect x="250" y="95" width="30" height="30" rx="15" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+    <text x="262" y="115" font-family="Arial, sans-serif" font-size="16" fill="#94a3b8">+</text>
+    
+    <!-- Card 1 - High Priority -->
+    <rect x="35" y="145" width="250" height="140" rx="6" fill="url(#cardGradient)" stroke="#e2e8f0" stroke-width="1" filter="url(#shadow)" />
+    <rect x="35" y="145" width="4" height="140" rx="2" fill="url(#priorityGradient)" />
+    <text x="50" y="170" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#111827">Acme Corporation</text>
+    <text x="50" y="195" font-family="Arial, sans-serif" font-size="13" fill="#64748b">John Smith - CEO</text>
+    <text x="50" y="220" font-family="Arial, sans-serif" font-size="13" fill="#64748b">john@acme.co</text>
+    <rect x="50" y="235" width="120" height="22" rx="4" fill="#fee2e2" />
+    <text x="80" y="250" font-family="Arial, sans-serif" font-size="11" fill="#b91c1c">High Priority</text>
+    <text x="205" y="250" font-family="Arial, sans-serif" font-size="13" font-weight="600" fill="#111827">$45,000</text>
+    
+    <!-- Card 2 -->
+    <rect x="35" y="300" width="250" height="140" rx="6" fill="url(#cardGradient)" stroke="#e2e8f0" stroke-width="1" filter="url(#shadow)" />
+    <text x="50" y="325" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#111827">TechStart Inc.</text>
+    <text x="50" y="350" font-family="Arial, sans-serif" font-size="13" fill="#64748b">Jane Doe - CTO</text>
+    <text x="50" y="375" font-family="Arial, sans-serif" font-size="13" fill="#64748b">jane@techstart.io</text>
+    <rect x="50" y="390" width="100" height="22" rx="4" fill="#dbeafe" />
+    <text x="70" y="405" font-family="Arial, sans-serif" font-size="11" fill="#1e40af">Software</text>
+    <text x="205" y="405" font-family="Arial, sans-serif" font-size="13" font-weight="600" fill="#111827">$28,500</text>
+    
+    <!-- Card 3 -->
+    <rect x="35" y="455" width="250" height="140" rx="6" fill="url(#cardGradient)" stroke="#e2e8f0" stroke-width="1" filter="url(#shadow)" />
+    <text x="50" y="480" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#111827">Meta Systems</text>
+    <text x="50" y="505" font-family="Arial, sans-serif" font-size="13" fill="#64748b">Alex Johnson - CFO</text>
+    <text x="50" y="530" font-family="Arial, sans-serif" font-size="13" fill="#64748b">alex@metasys.com</text>
+    <rect x="50" y="545" width="100" height="22" rx="4" fill="#dcfce7" />
+    <text x="75" y="560" font-family="Arial, sans-serif" font-size="11" fill="#166534">Finance</text>
+    <text x="205" y="560" font-family="Arial, sans-serif" font-size="13" font-weight="600" fill="#111827">$32,000</text>
+  </g>
+  
+  <g filter="url(#shadow)">
+    <!-- Contacted Column -->
+    <rect x="320" y="80" width="280" height="560" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+    <rect x="320" y="80" width="280" height="50" rx="8" fill="#f1f5f9" />
+    <text x="340" y="112" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#334155">Contacted</text>
+    <rect x="425" y="96" width="30" height="25" rx="12" fill="#e2e8f0" />
+    <text x="440" y="114" font-family="Arial, sans-serif" font-size="13" fill="#64748b">2</text>
+    
+    <!-- New Lead Button -->
+    <rect x="550" y="95" width="30" height="30" rx="15" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+    <text x="562" y="115" font-family="Arial, sans-serif" font-size="16" fill="#94a3b8">+</text>
+    
+    <!-- Card 3 -->
+    <rect x="335" y="145" width="250" height="140" rx="6" fill="url(#cardGradient)" stroke="#e2e8f0" stroke-width="1" filter="url(#shadow)" />
+    <rect x="335" y="145" width="4" height="140" rx="2" fill="#f59e0b" />
+    <text x="350" y="170" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#111827">Globex Industries</text>
+    <text x="350" y="195" font-family="Arial, sans-serif" font-size="13" fill="#64748b">Sarah Johnson - CMO</text>
+    <text x="350" y="220" font-family="Arial, sans-serif" font-size="13" fill="#64748b">sarah@globex.com</text>
+    
+    <!-- Last Communication -->
+    <rect x="350" y="235" width="220" height="30" rx="4" fill="#f3f4f6" />
+    <text x="365" y="255" font-family="Arial, sans-serif" font-size="11" fill="#4b5563">Last Contact: 2 days ago - Email</text>
+    <text x="505" y="255" font-family="Arial, sans-serif" font-size="13" font-weight="600" fill="#111827">$67,000</text>
+    
+    <!-- Card 4 -->
+    <rect x="335" y="300" width="250" height="140" rx="6" fill="url(#cardGradient)" stroke="#e2e8f0" stroke-width="1" filter="url(#shadow)" />
+    <text x="350" y="325" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#111827">FutureTech</text>
+    <text x="350" y="350" font-family="Arial, sans-serif" font-size="13" fill="#64748b">Linda Brown - CIO</text>
+    <text x="350" y="375" font-family="Arial, sans-serif" font-size="13" fill="#64748b">linda@futuretech.co</text>
+    
+    <!-- Last Communication -->
+    <rect x="350" y="390" width="220" height="30" rx="4" fill="#f3f4f6" />
+    <text x="365" y="410" font-family="Arial, sans-serif" font-size="11" fill="#4b5563">Last Contact: 1 day ago - Phone</text>
+    <text x="505" y="410" font-family="Arial, sans-serif" font-size="13" font-weight="600" fill="#111827">$82,000</text>
+  </g>
+  
+  <g filter="url(#shadow)">
+    <!-- Negotiation Column -->
+    <rect x="620" y="80" width="280" height="560" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+    <rect x="620" y="80" width="280" height="50" rx="8" fill="#f1f5f9" />
+    <text x="640" y="112" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#334155">Negotiation</text>
+    <rect x="740" y="96" width="30" height="25" rx="12" fill="#e2e8f0" />
+    <text x="755" y="114" font-family="Arial, sans-serif" font-size="13" fill="#64748b">2</text>
+    
+    <!-- New Lead Button -->
+    <rect x="850" y="95" width="30" height="30" rx="15" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+    <text x="862" y="115" font-family="Arial, sans-serif" font-size="16" fill="#94a3b8">+</text>
+    
+    <!-- Card 5 -->
+    <rect x="635" y="145" width="250" height="155" rx="6" fill="url(#cardGradient)" stroke="#e2e8f0" stroke-width="1" filter="url(#shadow)" />
+    <rect x="635" y="145" width="4" height="155" rx="2" fill="#8b5cf6" />
+    <text x="650" y="170" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#111827">Initech LLC</text>
+    <text x="650" y="195" font-family="Arial, sans-serif" font-size="13" fill="#64748b">Michael Davis - COO</text>
+    <text x="650" y="220" font-family="Arial, sans-serif" font-size="13" fill="#64748b">mdavis@initech.net</text>
+    
+    <!-- Progress Bar -->
+    <rect x="650" y="235" width="220" height="8" rx="4" fill="#e5e7eb" />
+    <rect x="650" y="235" width="165" height="8" rx="4" fill="#8b5cf6" />
+    <text x="650" y="260" font-family="Arial, sans-serif" font-size="11" fill="#4b5563">Proposal: 75% Complete</text>
+    
+    <!-- Next Meeting -->
+    <rect x="650" y="270" width="220" height="20" rx="4" fill="#f3f4f6" />
+    <text x="660" y="285" font-family="Arial, sans-serif" font-size="11" fill="#4b5563">Next Meeting: Tomorrow @ 2PM</text>
+    
+    <text x="805" y="255" font-family="Arial, sans-serif" font-size="13" font-weight="600" fill="#111827">$125,000</text>
+    
+    <!-- Card 6 -->
+    <rect x="635" y="315" width="250" height="155" rx="6" fill="url(#cardGradient)" stroke="#e2e8f0" stroke-width="1" filter="url(#shadow)" />
+    <rect x="635" y="315" width="4" height="155" rx="2" fill="#8b5cf6" />
+    <text x="650" y="340" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#111827">OmniCorp</text>
+    <text x="650" y="365" font-family="Arial, sans-serif" font-size="13" fill="#64748b">Robert Zhang - VP Sales</text>
+    <text x="650" y="390" font-family="Arial, sans-serif" font-size="13" fill="#64748b">robert@omnicorp.co</text>
+    
+    <!-- Progress Bar -->
+    <rect x="650" y="405" width="220" height="8" rx="4" fill="#e5e7eb" />
+    <rect x="650" y="405" width="132" height="8" rx="4" fill="#8b5cf6" />
+    <text x="650" y="430" font-family="Arial, sans-serif" font-size="11" fill="#4b5563">Proposal: 60% Complete</text>
+    
+    <!-- Next Meeting -->
+    <rect x="650" y="440" width="220" height="20" rx="4" fill="#f3f4f6" />
+    <text x="660" y="455" font-family="Arial, sans-serif" font-size="11" fill="#4b5563">Next Meeting: Friday @ 11AM</text>
+    
+    <text x="805" y="430" font-family="Arial, sans-serif" font-size="13" font-weight="600" fill="#111827">$93,500</text>
+  </g>
+  
+  <g filter="url(#shadow)">
+    <!-- Won Column -->
+    <rect x="920" y="80" width="260" height="560" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+    <rect x="920" y="80" width="260" height="50" rx="8" fill="#f1f5f9" />
+    <text x="940" y="112" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#334155">Won</text>
+    <rect x="990" y="96" width="30" height="25" rx="12" fill="#e2e8f0" />
+    <text x="1005" y="114" font-family="Arial, sans-serif" font-size="13" fill="#64748b">2</text>
+    
+    <!-- New Lead Button -->
+    <rect x="1130" y="95" width="30" height="30" rx="15" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+    <text x="1142" y="115" font-family="Arial, sans-serif" font-size="16" fill="#94a3b8">+</text>
+    
+    <!-- Celebration Confetti -->
+    <circle cx="950" cy="145" r="2" fill="#f59e0b" />
+    <circle cx="960" cy="135" r="3" fill="#ef4444" />
+    <circle cx="985" cy="130" r="2" fill="#8b5cf6" />
+    <circle cx="1000" cy="140" r="3" fill="#3b82f6" />
+    <circle cx="1020" cy="135" r="2" fill="#10b981" />
+    <circle cx="1035" cy="145" r="3" fill="#f59e0b" />
+    <circle cx="1060" cy="142" r="2" fill="#ef4444" />
+    <circle cx="1080" cy="136" r="3" fill="#8b5cf6" />
+    <circle cx="1100" cy="148" r="2" fill="#3b82f6" />
+    <circle cx="1120" cy="141" r="3" fill="#10b981" />
+    <circle cx="1140" cy="133" r="2" fill="#f59e0b" />
+    <circle cx="1160" cy="142" r="3" fill="#ef4444" />
+    
+    <!-- Card 7 -->
+    <rect x="935" y="155" width="230" height="155" rx="6" fill="url(#cardGradient)" stroke="#10b981" stroke-width="2" filter="url(#shadow)" />
+    <text x="950" y="180" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#111827">Stark Enterprises</text>
+    <text x="950" y="205" font-family="Arial, sans-serif" font-size="13" fill="#64748b">Tony Stark - CEO</text>
+    <text x="950" y="230" font-family="Arial, sans-serif" font-size="13" fill="#64748b">tony@stark.com</text>
+    
+    <!-- Deal Badge -->
+    <rect x="950" y="245" width="100" height="22" rx="4" fill="#d1fae5" />
+    <text x="970" y="260" font-family="Arial, sans-serif" font-size="11" fill="#047857">Deal Closed</text>
+    
+    <!-- Date Badge -->
+    <rect x="950" y="275" width="150" height="22" rx="4" fill="#f3f4f6" />
+    <text x="965" y="290" font-family="Arial, sans-serif" font-size="11" fill="#4b5563">Closed on: Yesterday</text>
+    
+    <text x="1085" y="290" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#059669">$250,000</text>
+    
+    <!-- Card 8 -->
+    <rect x="935" y="325" width="230" height="155" rx="6" fill="url(#cardGradient)" stroke="#10b981" stroke-width="2" filter="url(#shadow)" />
+    <text x="950" y="350" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#111827">Wayne Industries</text>
+    <text x="950" y="375" font-family="Arial, sans-serif" font-size="13" fill="#64748b">Bruce Wayne - CEO</text>
+    <text x="950" y="400" font-family="Arial, sans-serif" font-size="13" fill="#64748b">bruce@wayne.com</text>
+    
+    <!-- Deal Badge -->
+    <rect x="950" y="415" width="100" height="22" rx="4" fill="#d1fae5" />
+    <text x="970" y="430" font-family="Arial, sans-serif" font-size="11" fill="#047857">Deal Closed</text>
+    
+    <!-- Date Badge -->
+    <rect x="950" y="445" width="150" height="22" rx="4" fill="#f3f4f6" />
+    <text x="965" y="460" font-family="Arial, sans-serif" font-size="11" fill="#4b5563">Closed on: 3 days ago</text>
+    
+    <text x="1085" y="460" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#059669">$175,000</text>
+  </g>
+  
+  <!-- Total Revenue Stats at Bottom -->
+  <rect x="20" y="650" width="1160" height="1" fill="#e5e7eb" />
+  <text x="30" y="665" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#4b5563">Total Pipeline Value: </text>
+  <text x="180" y="665" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#111827">$898,000</text>
+  
+  <text x="280" y="665" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#4b5563">Won: </text>
+  <text x="320" y="665" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#059669">$425,000</text>
+  
+  <text x="400" y="665" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#4b5563">Open Deals: </text>
+  <text x="490" y="665" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#6366f1">7</text>
+  
+  <text x="520" y="665" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#4b5563">Conversion Rate: </text>
+  <text x="650" y="665" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#111827">22%</text>
+</svg> 
