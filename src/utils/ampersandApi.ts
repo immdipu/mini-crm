@@ -11,6 +11,7 @@ const isBrowser = typeof window !== 'undefined';
 
 /**
  * Make an authenticated call to the Ampersand Proxy API
+ * Uses a server-side proxy route to bypass CORS restrictions
  */
 export const callAmpersandApi = async <T = unknown>({
   installationId,
@@ -23,39 +24,47 @@ export const callAmpersandApi = async <T = unknown>({
     throw new Error('API calls can only be made in the browser');
   }
   
-  const projectId = process.env.NEXT_PUBLIC_AMPERSAND_PROJECT_ID;
-  const apiKey = process.env.NEXT_PUBLIC_AMPERSAND_API_KEY;
+  try {
+    console.log(`Making Ampersand API request to ${endpoint} via proxy`);
+    
+    // Call our own server-side proxy route instead of Ampersand directly
+    const response = await fetch('/api/ampersand', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        endpoint,
+        installationId,
+        method,
+        requestBody: body,
+        params,
+      }),
+    });
 
-  if (!projectId || !apiKey) {
-    throw new Error('Ampersand API credentials are not configured');
+    // Log response status
+    console.log(`Proxy response status: ${response.status}`);
+    
+    if (!response.ok) {
+      // Try to parse error response
+      let errorMessage: string;
+      try {
+        const errorData = await response.json();
+        console.log('Error response:', errorData);
+        errorMessage = errorData.error || errorData.message || `HTTP Error ${response.status}`;
+      } catch {
+        // If we can't parse JSON, use text
+        errorMessage = await response.text();
+      }
+      
+      throw new Error(`Ampersand API error (${response.status}): ${errorMessage}`);
+    }
+
+    // Parse JSON response
+    const data = await response.json();
+    return data as T;
+  } catch (error) {
+    console.error('API call failed:', endpoint, error);
+    throw error;
   }
-
-  // Set up headers for Ampersand proxy API
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'x-amp-proxy-version': '1',
-    'x-amp-project-id': projectId,
-    'x-api-key': apiKey,
-    'x-amp-installation-id': installationId,
-  };
-
-  // Build URL with query parameters
-  const url = new URL(`https://proxy.withampersand.com${endpoint}`);
-  Object.entries(params).forEach(([key, value]) => {
-    url.searchParams.append(key, value);
-  });
-
-  // Make the API request
-  const response = await fetch(url.toString(), {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Ampersand API error (${response.status}): ${errorText}`);
-  }
-
-  return response.json();
 }; 

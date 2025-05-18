@@ -199,7 +199,7 @@ function IntegrationPageContent() {
     }
 
     try {
-      await integrationHook.syncData();
+      const importedLeads = await integrationHook.syncData();
       
       // Update the last synced time
       setConnectionInfo(prev => ({
@@ -210,7 +210,7 @@ function IntegrationPageContent() {
         }
       }));
       
-      showSuccessMessage(`Successfully imported leads from ${provider}.`);
+      showSuccessMessage(`Successfully imported ${importedLeads.length} leads from ${provider}.`);
     } catch (err) {
       console.error("Sync error:", err);
       alert(

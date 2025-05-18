@@ -6,6 +6,7 @@ interface IntegrationStorage {
   installationId: string;
   connected: boolean;
   lastSynced?: string;
+  configDetails?: Record<string, unknown>;
 }
 
 export interface UseIntegrationBaseProps {
@@ -15,10 +16,11 @@ export interface UseIntegrationBaseProps {
 export interface UseIntegrationBaseReturn {
   isConnecting: boolean;
   isSyncing: boolean;
-  connect: (installationId: string) => Promise<boolean>;
+  connect: (installationId: string, configDetails?: Record<string, unknown>) => Promise<boolean>;
   disconnect: () => Promise<boolean>;
   syncData: () => Promise<Lead[]>;
   getConnectionInfo: () => IntegrationStorage | null;
+  updateConfig: (configDetails: Record<string, unknown>) => void;
 }
 
 // Check if we're in a browser environment
@@ -60,8 +62,26 @@ export const useIntegrationBase = ({ provider }: UseIntegrationBaseProps): UseIn
     }
   };
 
+  // Update configuration details for the provider
+  const updateConfig = (configDetails: Record<string, unknown>): void => {
+    const currentInfo = getConnectionInfo();
+    
+    if (currentInfo) {
+      saveConnectionInfo({
+        ...currentInfo,
+        configDetails: {
+          ...currentInfo.configDetails,
+          ...configDetails
+        }
+      });
+    }
+  };
+
   // Connect to a provider
-  const connect = async (installationId: string): Promise<boolean> => {
+  const connect = async (
+    installationId: string, 
+    configDetails?: Record<string, unknown>
+  ): Promise<boolean> => {
     setIsConnecting(true);
     
     try {
@@ -70,6 +90,7 @@ export const useIntegrationBase = ({ provider }: UseIntegrationBaseProps): UseIn
         installationId,
         connected: true,
         lastSynced: new Date().toISOString(),
+        configDetails
       });
       
       return true;
@@ -122,5 +143,6 @@ export const useIntegrationBase = ({ provider }: UseIntegrationBaseProps): UseIn
     disconnect,
     syncData,
     getConnectionInfo,
+    updateConfig,
   };
 }; 
