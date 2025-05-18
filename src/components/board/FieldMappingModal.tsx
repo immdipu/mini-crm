@@ -16,7 +16,6 @@ interface FieldMappingModalProps {
   previewData?: Record<string, unknown>[];
 }
 
-// Define the target fields structure
 const TARGET_FIELDS: {
   name: string;
   label: string;
@@ -60,15 +59,12 @@ export const FieldMappingModal = ({
   sourceFields
 }: FieldMappingModalProps) => {
   const [mappings, setMappings] = useState<FieldMappingType[]>([]);
-
-  // Handle mapping changes
+  
   const handleMappingChange = (newMappings: FieldMappingType[]) => {
     setMappings(newMappings);
   };
 
-  // Handle completion
   const handleComplete = () => {
-    // Filter out any mappings with _empty values
     const validMappings = mappings.filter(
       mapping => mapping.sourceField !== '_empty' &&
                 mapping.targetField !== '_empty' &&
@@ -83,16 +79,12 @@ export const FieldMappingModal = ({
   return (
     <ModalDialog isOpen={isOpen} onClose={onClose} title="Map Your Data Fields" maxWidth="xl">
       <div className="space-y-4">
-
-
-        {/* Field mapping component */}
         <FieldMapping
           sourceFields={sourceFields}
           targetFields={TARGET_FIELDS}
           mappings={mappings}
           onChange={handleMappingChange}
         />
-
         <div className="flex justify-between items-center gap-2 pt-4 border-t mt-4">
           <div className="text-xs text-gray-500">
             {mappings.filter(m => m.targetField !== '_empty' && m.sourceField !== '_empty').length} fields mapped
