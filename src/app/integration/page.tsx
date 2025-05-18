@@ -309,7 +309,7 @@ function IntegrationPageContent() {
           </AnimatePresence>
 
           <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
-            <div className="mb-6 flex justify-between items-center">
+            <div className="mb-6 grid grid-cols-1 max-md:gap-y-4 md:flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-medium mb-2">Integration Hub</h2>
                 <p className="text-gray-500 text-sm">
@@ -319,7 +319,7 @@ function IntegrationPageContent() {
               </div>
 
               {isClientSide && connectedCount > 0 && (
-                <div className="bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full flex items-center">
+                <div className="bg-blue-50 max-md:w-fit text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full flex items-center">
                   <span className="block h-2 w-2 bg-blue-600 rounded-full mr-1.5 animate-pulse"></span>
                   {connectedCount} connected
                 </div>
