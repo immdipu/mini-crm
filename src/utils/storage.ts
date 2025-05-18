@@ -75,6 +75,7 @@ export const createLead = (
   currentBoard: Board,
   currentLeads: Record<string, Lead>
 ): { board: Board; leads: Record<string, Lead>; newLead: Lead } => {
+  console.log("createLead called with:", { lead, boardStatus: lead.status });
   const timestamp = Date.now();
   const id = uuidv4();
 
@@ -85,12 +86,18 @@ export const createLead = (
     updatedAt: timestamp,
   };
 
+  console.log("New lead created with ID:", id);
 
   const updatedLeads = {
     ...currentLeads,
     [id]: newLead,
   };
 
+  // Make sure the status column exists
+  if (!currentBoard.columns[lead.status]) {
+    console.error(`Status column '${lead.status}' does not exist in board:`, currentBoard);
+    throw new Error(`Status column '${lead.status}' does not exist`);
+  }
 
   const updatedColumns = {
     ...currentBoard.columns,

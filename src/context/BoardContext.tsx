@@ -53,11 +53,18 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const addLead = (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!board) return;
+    console.log("BoardContext addLead called with:", lead);
+    if (!board) {
+      console.error("Cannot add lead: board is null");
+      return;
+    }
 
     const result = createLead(lead, board, leads);
+    console.log("createLead result:", result);
     setBoard(result.board);
     setLeads(result.leads);
+    
+    return result.newLead;
   };
 
 

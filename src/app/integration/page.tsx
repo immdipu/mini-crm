@@ -245,13 +245,20 @@ function IntegrationPageContent() {
   
   // Handle completing the field mapping
   const handleFieldMappingComplete = async (mappings: FieldMapping[]) => {
-    if (!currentProvider || !activeIntegrationHook) return;
+    console.log("handleFieldMappingComplete called with mappings:", mappings);
+    if (!currentProvider || !activeIntegrationHook) {
+      console.error("Missing provider or integration hook", { currentProvider, activeIntegrationHook });
+      return;
+    }
     
     setSyncingProvider(currentProvider);
+    console.log("About to call importWithMapping on hook:", activeIntegrationHook);
     
     try {
       // Import with the provided mappings
+      console.log("Calling importWithMapping with mappings:", mappings);
       const importedLeads = await activeIntegrationHook.importWithMapping(mappings);
+      console.log("importWithMapping returned leads:", importedLeads);
       
       // Update the last synced time
       setConnectionInfo(prev => ({
@@ -270,7 +277,7 @@ function IntegrationPageContent() {
       setProviderSourceFields([]);
       setActiveIntegrationHook(null);
     } catch (err) {
-      console.error("Import error:", err);
+      console.error("Import error details:", err);
       alert(
         `Failed to import leads from ${currentProvider}: ${
           err instanceof Error ? err.message : "Unknown error"

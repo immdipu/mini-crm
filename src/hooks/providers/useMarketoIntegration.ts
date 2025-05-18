@@ -1,8 +1,9 @@
 import { useBoard } from '@/context/BoardContext';
-import { Lead, Status, Priority, LeadSource, FieldMapping } from '@/types';
+import { Lead, Status, Priority, LeadSource, FieldMapping, ImportedLead } from '@/types';
 import { callAmpersandApi } from '@/utils/ampersandApi';
 import { useIntegrationBase, UseIntegrationBaseReturn } from './useIntegrationBase';
 import { useState } from 'react';
+import { importLeads } from '@/utils/storage';
 
 // Define Marketo lead record
 interface MarketoLeadRecord {
@@ -36,7 +37,7 @@ interface UseMarketoIntegrationReturn extends UseIntegrationBaseReturn {
 }
 
 export const useMarketoIntegration = (): UseMarketoIntegrationReturn => {
-  const { addLead } = useBoard();
+  const { board, leads } = useBoard();
   const baseIntegration = useIntegrationBase({ provider: 'Marketo' });
   
   // Add state for field mapping flow
@@ -133,50 +134,177 @@ export const useMarketoIntegration = (): UseMarketoIntegrationReturn => {
   // Import data with user-defined field mappings
   const importWithMapping = async (mappings: FieldMapping[]): Promise<Lead[]> => {
     try {
-      if (rawRecords.length === 0) {
-        // If we don't have records yet, fetch them
-        await fetchSourceFields();
-      }
+      let records = rawRecords;
+      console.log("Initial Marketo rawRecords state:", records.length);
       
-      // Map Marketo records to leads based on user-defined mappings
-      const importedLeads: Lead[] = [];
-      
-      for (const record of rawRecords) {
-        const lead: Partial<Lead> = {
-          status: 'new' as Status,
-          priority: 'medium' as Priority,
-          leadSource: 'other' as LeadSource,
-        };
+      if (records.length === 0) {
+        console.log("No Marketo records found, fetching directly");
+        // Fetch records directly
+        const connectionInfo = baseIntegration.getConnectionInfo();
         
-        // Apply mappings
-        mappings.forEach(mapping => {
-          if (mapping.sourceField && mapping.targetField && mapping.sourceField !== '_empty' && mapping.targetField !== '_empty') {
-            const fieldValue = record[mapping.sourceField];
-            
-            // Convert field value to string if defined
-            if (fieldValue !== undefined) {
-              // Use a type assertion that's more specific to the Lead field types
-              (lead as Record<string, string>)[mapping.targetField] = String(fieldValue);
-            }
+        if (!connectionInfo || !connectionInfo.connected) {
+          throw new Error('Marketo is not connected');
+        }
+        
+        // First, get the available fields
+        const fieldsResponse = await callAmpersandApi<{ result: { name: string; displayName: string }[] }>({
+          installationId: connectionInfo.installationId,
+          endpoint: '/rest/v1/leads/describe.json'
+        });
+        
+        // Extract field names
+        const fieldNames = fieldsResponse.result.map(field => field.name);
+        
+        // Get lead data with these fields
+        const response = await callAmpersandApi<MarketoResponse>({
+          installationId: connectionInfo.installationId,
+          endpoint: '/rest/v1/leads.json',
+          params: {
+            fields: fieldNames.join(','),
+            batchSize: '50'
           }
         });
         
-        // Add the lead to the board
-        addLead(lead as Lead);
-        importedLeads.push(lead as Lead);
+        if (!response.success || !response.result || response.result.length === 0) {
+          throw new Error("No leads found in Marketo");
+        }
+        
+        console.log(`Directly fetched ${response.result.length} Marketo leads`);
+        records = response.result;
+        // Also update state for future use
+        setRawRecords(records);
       }
       
-      // Update last synced info
-      const connectionInfo = baseIntegration.getConnectionInfo();
-      if (connectionInfo) {
-        const storageKey = 'integration_marketo';
-        localStorage.setItem(storageKey, JSON.stringify({
-          ...connectionInfo,
-          lastSynced: new Date().toISOString()
-        }));
+      console.log("Processing Marketo records:", records.length);
+      
+      // Convert Marketo records to ImportedLead format
+      const importableLeads: ImportedLead[] = [];
+      
+      for (const record of records) {
+        // Create lead with required defaults
+        const fullName = 
+          (record.firstName ? record.firstName + ' ' : '') + 
+          (record.lastName || 'Unknown');
+          
+        const lead: ImportedLead = {
+          name: fullName,
+          company: record.company || "Unknown Company",
+          priority: 'medium' as Priority,
+          notes: record.notes || "",
+          email: record.email,
+          phone: record.phone,
+        };
+        
+        // Apply mappings
+        for (const mapping of mappings) {
+          if (mapping.sourceField && mapping.targetField && 
+              mapping.sourceField !== '_empty' && 
+              mapping.targetField !== '_empty') {
+            
+            const fieldValue = record[mapping.sourceField];
+            console.log(`Mapping ${mapping.sourceField} to ${mapping.targetField}, value:`, fieldValue);
+            
+            if (fieldValue !== undefined && fieldValue !== null) {
+              // Handle different field types appropriately
+              if (typeof fieldValue === 'string' || 
+                  typeof fieldValue === 'number' || 
+                  typeof fieldValue === 'boolean') {
+                
+                // For status field, ensure it's a valid enum value
+                if (mapping.targetField === 'status') {
+                  const statusValue = String(fieldValue).toLowerCase();
+                  if (['new', 'contacted', 'qualified', 'won', 'lost'].includes(statusValue)) {
+                    lead.status = statusValue as Status;
+                  }
+                } 
+                // For priority field, ensure it's a valid enum value
+                else if (mapping.targetField === 'priority') {
+                  const priorityValue = String(fieldValue).toLowerCase();
+                  if (['low', 'medium', 'high'].includes(priorityValue)) {
+                    lead.priority = priorityValue as Priority;
+                  }
+                }
+                // For leadSource field, ensure it's a valid enum value 
+                else if (mapping.targetField === 'leadSource') {
+                  const sourceValue = String(fieldValue).toLowerCase();
+                  if (['website', 'referral', 'social_media', 'email_campaign', 'event', 'other'].includes(sourceValue)) {
+                    lead.leadSource = sourceValue as LeadSource;
+                  }
+                }
+                // For specific fields
+                else if (mapping.targetField === 'email') {
+                  lead.email = String(fieldValue);
+                }
+                else if (mapping.targetField === 'phone') {
+                  lead.phone = String(fieldValue);
+                }
+                else if (mapping.targetField === 'notes') {
+                  lead.notes = String(fieldValue);
+                }
+                else if (mapping.targetField === 'assignedTo') {
+                  lead.assignedTo = String(fieldValue);
+                }
+                else if (mapping.targetField === 'name') {
+                  lead.name = String(fieldValue);
+                }
+                else if (mapping.targetField === 'company') {
+                  lead.company = String(fieldValue);
+                }
+                // Ignore other fields
+              }
+            }
+          }
+        }
+        
+        // Final validation of required fields
+        if (!lead.name || lead.name.trim() === "") {
+          console.log("Setting default name for lead without name");
+          lead.name = "Unknown Lead";
+        }
+        
+        if (!lead.company || lead.company.trim() === "") {
+          console.log("Setting default company for lead without company");
+          lead.company = "Unknown Company";
+        }
+        
+        console.log("Final Marketo lead to be added:", lead);
+        importableLeads.push(lead);
       }
       
-      return importedLeads;
+      console.log(`Prepared ${importableLeads.length} Marketo leads to import`);
+      
+      // Import all leads at once to avoid replacing each other
+      if (importableLeads.length > 0 && board) {
+        try {
+          // Use the importLeads function to add all leads at once
+          const { leads: updatedLeads } = importLeads(importableLeads, board, leads);
+          
+          // Convert the imported leads to Lead objects for the return value
+          const newLeads = Object.values(updatedLeads).filter(lead => {
+            // Only return newly created leads (created in the last 5 seconds)
+            return Date.now() - lead.createdAt < 5000;
+          });
+          
+          console.log("Total Marketo leads imported successfully:", newLeads.length);
+          
+          // Update last synced info
+          const connectionInfo = baseIntegration.getConnectionInfo();
+          if (connectionInfo) {
+            const storageKey = 'integration_marketo';
+            localStorage.setItem(storageKey, JSON.stringify({
+              ...connectionInfo,
+              lastSynced: new Date().toISOString()
+            }));
+          }
+          
+          return newLeads;
+        } catch (err) {
+          console.error("Error importing Marketo leads:", err);
+          throw err;
+        }
+      }
+      
+      return [];
     } catch (error) {
       console.error('Failed to import Marketo records with mapping:', error);
       throw error;

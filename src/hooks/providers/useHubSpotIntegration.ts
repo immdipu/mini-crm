@@ -1,8 +1,9 @@
 import { useBoard } from '@/context/BoardContext';
-import { Lead, Status, Priority, LeadSource, FieldMapping } from '@/types';
+import { Lead, Status, Priority, LeadSource, FieldMapping, ImportedLead } from '@/types';
 import { callAmpersandApi } from '@/utils/ampersandApi';
 import { useIntegrationBase, UseIntegrationBaseReturn } from './useIntegrationBase';
 import { useState } from 'react';
+import { importLeads } from '@/utils/storage';
 
 // Define HubSpot contact properties
 interface HubSpotContactProperties {
@@ -34,7 +35,7 @@ interface UseHubSpotIntegrationReturn extends UseIntegrationBaseReturn {
 }
 
 export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
-  const { addLead } = useBoard();
+  const { board, leads } = useBoard();
   const baseIntegration = useIntegrationBase({ provider: 'HubSpot' });
   
   // Add state for field mapping flow
@@ -128,50 +129,177 @@ export const useHubSpotIntegration = (): UseHubSpotIntegrationReturn => {
   // Import data with user-defined field mappings
   const importWithMapping = async (mappings: FieldMapping[]): Promise<Lead[]> => {
     try {
-      if (rawRecords.length === 0) {
-        // If we don't have records yet, fetch them
-        await fetchSourceFields();
-      }
+      let records = rawRecords;
+      console.log("Initial HubSpot rawRecords state:", records.length);
       
-      // Map HubSpot contacts to leads based on user-defined mappings
-      const importedLeads: Lead[] = [];
-      
-      for (const contact of rawRecords) {
-        const lead: Partial<Lead> = {
-          status: 'new' as Status,
-          priority: 'medium' as Priority,
-          leadSource: 'other' as LeadSource,
-        };
+      if (records.length === 0) {
+        console.log("No HubSpot records found, fetching directly");
+        // Fetch records directly
+        const connectionInfo = baseIntegration.getConnectionInfo();
         
-        // Apply mappings
-        mappings.forEach(mapping => {
-          if (mapping.sourceField && mapping.targetField && mapping.sourceField !== '_empty' && mapping.targetField !== '_empty') {
-            const fieldValue = contact.properties[mapping.sourceField];
-            
-            // Convert field value to string if defined
-            if (fieldValue !== undefined) {
-              // Use a type assertion that's more specific to the Lead field types
-              (lead as Record<string, string>)[mapping.targetField] = String(fieldValue);
-            }
+        if (!connectionInfo || !connectionInfo.connected) {
+          throw new Error('HubSpot is not connected');
+        }
+        
+        // Get available contact properties first
+        const propertiesResponse = await callAmpersandApi<{ results: { name: string; label: string }[] }>({
+          installationId: connectionInfo.installationId,
+          endpoint: '/crm/v3/properties/contacts',
+        });
+        
+        // Extract property names
+        const propertyNames = propertiesResponse.results.map(prop => prop.name);
+        
+        // Now get sample contact data with these properties
+        const response = await callAmpersandApi<{ results: HubSpotContact[] }>({
+          installationId: connectionInfo.installationId,
+          endpoint: '/crm/v3/objects/contacts',
+          params: {
+            limit: '50',
+            properties: propertyNames.join(',')
           }
         });
         
-        // Add the lead to the board
-        addLead(lead as Lead);
-        importedLeads.push(lead as Lead);
+        if (!response.results || response.results.length === 0) {
+          throw new Error("No contacts found in HubSpot");
+        }
+        
+        console.log(`Directly fetched ${response.results.length} HubSpot contacts`);
+        records = response.results;
+        // Also update state for future use
+        setRawRecords(records);
       }
       
-      // Update last synced info
-      const connectionInfo = baseIntegration.getConnectionInfo();
-      if (connectionInfo) {
-        const storageKey = 'integration_hubspot';
-        localStorage.setItem(storageKey, JSON.stringify({
-          ...connectionInfo,
-          lastSynced: new Date().toISOString()
-        }));
+      console.log("Processing HubSpot records:", records.length);
+      
+      // Convert HubSpot contacts to ImportedLead format
+      const importableLeads: ImportedLead[] = [];
+      
+      for (const contact of records) {
+        // Create lead with required defaults - extract useful names
+        const firstName = contact.properties.firstname || '';
+        const lastName = contact.properties.lastname || '';
+        const fullName = firstName && lastName ? `${firstName} ${lastName}` : (firstName || lastName || 'Unknown Lead');
+        
+        const lead: ImportedLead = {
+          name: fullName,
+          company: contact.properties.company || "Unknown Company",
+          priority: 'medium' as Priority,
+          notes: contact.properties.notes || "",
+          email: contact.properties.email,
+          phone: contact.properties.phone,
+        };
+        
+        // Apply mappings
+        for (const mapping of mappings) {
+          if (mapping.sourceField && mapping.targetField && 
+              mapping.sourceField !== '_empty' && 
+              mapping.targetField !== '_empty') {
+            
+            const fieldValue = contact.properties[mapping.sourceField];
+            console.log(`Mapping ${mapping.sourceField} to ${mapping.targetField}, value:`, fieldValue);
+            
+            if (fieldValue !== undefined && fieldValue !== null) {
+              // Handle different field types appropriately
+              if (typeof fieldValue === 'string' || 
+                  typeof fieldValue === 'number' || 
+                  typeof fieldValue === 'boolean') {
+                
+                // For status field, ensure it's a valid enum value
+                if (mapping.targetField === 'status') {
+                  const statusValue = String(fieldValue).toLowerCase();
+                  if (['new', 'contacted', 'qualified', 'won', 'lost'].includes(statusValue)) {
+                    lead.status = statusValue as Status;
+                  }
+                } 
+                // For priority field, ensure it's a valid enum value
+                else if (mapping.targetField === 'priority') {
+                  const priorityValue = String(fieldValue).toLowerCase();
+                  if (['low', 'medium', 'high'].includes(priorityValue)) {
+                    lead.priority = priorityValue as Priority;
+                  }
+                }
+                // For leadSource field, ensure it's a valid enum value 
+                else if (mapping.targetField === 'leadSource') {
+                  const sourceValue = String(fieldValue).toLowerCase();
+                  if (['website', 'referral', 'social_media', 'email_campaign', 'event', 'other'].includes(sourceValue)) {
+                    lead.leadSource = sourceValue as LeadSource;
+                  }
+                }
+                // For specific fields
+                else if (mapping.targetField === 'email') {
+                  lead.email = String(fieldValue);
+                }
+                else if (mapping.targetField === 'phone') {
+                  lead.phone = String(fieldValue);
+                }
+                else if (mapping.targetField === 'notes') {
+                  lead.notes = String(fieldValue);
+                }
+                else if (mapping.targetField === 'assignedTo') {
+                  lead.assignedTo = String(fieldValue);
+                }
+                else if (mapping.targetField === 'name') {
+                  lead.name = String(fieldValue);
+                }
+                else if (mapping.targetField === 'company') {
+                  lead.company = String(fieldValue);
+                }
+                // Ignore other fields
+              }
+            }
+          }
+        }
+        
+        // Final validation of required fields
+        if (!lead.name || lead.name.trim() === "") {
+          console.log("Setting default name for lead without name");
+          lead.name = "Unknown Lead";
+        }
+        
+        if (!lead.company || lead.company.trim() === "") {
+          console.log("Setting default company for lead without company");
+          lead.company = "Unknown Company";
+        }
+        
+        console.log("Final HubSpot lead to be added:", lead);
+        importableLeads.push(lead);
       }
       
-      return importedLeads;
+      console.log(`Prepared ${importableLeads.length} HubSpot leads to import`);
+      
+      // Import all leads at once to avoid replacing each other
+      if (importableLeads.length > 0 && board) {
+        try {
+          // Use the importLeads function to add all leads at once
+          const { leads: updatedLeads } = importLeads(importableLeads, board, leads);
+          
+          // Convert the imported leads to Lead objects for the return value
+          const newLeads = Object.values(updatedLeads).filter(lead => {
+            // Only return newly created leads (created in the last 5 seconds)
+            return Date.now() - lead.createdAt < 5000;
+          });
+          
+          console.log("Total HubSpot leads imported successfully:", newLeads.length);
+          
+          // Update last synced info
+          const connectionInfo = baseIntegration.getConnectionInfo();
+          if (connectionInfo) {
+            const storageKey = 'integration_hubspot';
+            localStorage.setItem(storageKey, JSON.stringify({
+              ...connectionInfo,
+              lastSynced: new Date().toISOString()
+            }));
+          }
+          
+          return newLeads;
+        } catch (err) {
+          console.error("Error importing HubSpot leads:", err);
+          throw err;
+        }
+      }
+      
+      return [];
     } catch (error) {
       console.error('Failed to import HubSpot records with mapping:', error);
       throw error;
