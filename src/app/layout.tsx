@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/ui/Navigation";
 import { BoardProvider } from "@/context/BoardContext";
+import { AmpersandProvider } from "@/context/AmpersandContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,8 +30,10 @@ export default function RootLayout({
         className="font-sans antialiased text-gray-900 bg-[#f8f9fa]"
       >
         <BoardProvider>
-          <Navigation/>
-          {children}
+          <AmpersandProvider>
+            <Navigation/>
+            {children}
+          </AmpersandProvider>
         </BoardProvider>
       </body>
     </html>

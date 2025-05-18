@@ -1,0 +1,20 @@
+specVersion: 1.0.0
+integrations:
+  - name: salesforce-leads-integration
+    displayName: Salesforce Leads
+    provider: salesforce
+    proxy:
+      enabled: true
+
+  - name: hubspot-leads-integration
+    displayName: HubSpot Leads
+    provider: hubspot
+    module: crm
+    proxy:
+      enabled: true
+
+  - name: marketo-leads-integration
+    displayName: Marketo Leads
+    provider: marketo
+    proxy:
+      enabled: true 

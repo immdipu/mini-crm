@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" xml:space="preserve">
+    <style type="text/css">
+     .st0{fill:#140F4D;}
+       .st1{fill:#968CFF;}
+       .st2{fill:#DBD9FF;}
+    </style>
+    <g>
+     <path class="st0" d="M50,0.1c27.5,0,49.9,22.3,49.9,49.9c0,27.5-22.3,49.9-49.9,49.9C22.5,99.9,0.1,77.5,0.1,50   C0.1,22.5,22.5,0.1,50,0.1">
+     </path>
+     <path class="st1" d="M5.2,50C5.2,25.2,25.2,5.1,50,5.1c24.8,0,44.8,20.1,44.8,44.9c0,24.8-20.1,44.9-44.8,44.9   C25.2,94.9,5.2,74.8,5.2,50 M0,50c0,27.6,22.4,50,50,50c27.6,0,50-22.4,50-50c0-27.6-22.4-50-50-50C22.4,0,0,22.4,0,50">
+     </path>
+     <polygon class="st2" points="59.1,21.9 59.1,80.5 74.1,68.6 74.1,30  ">
+     </polygon>
+     <polygon class="st2" points="52.2,67.7 40.1,73 40.1,27 52.2,30.6  ">
+     </polygon>
+     <polygon class="st2" points="23.9,66.4 33.2,63.9 33.2,34.6 23.9,33.1  ">
+     </polygon>
+    </g>
+   </svg>

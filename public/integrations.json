@@ -1,0 +1,22 @@
+{
+  "providers": [
+    {
+      "name": "Salesforce",
+      "icon": "/images/integrations/salesforce.svg",
+      "description": "Import leads from Salesforce to manage them in your CRM board.",
+      "integrationName": "salesforce-leads-integration"
+    },
+    {
+      "name": "HubSpot",
+      "icon": "/images/integrations/hubspot.svg",
+      "description": "Sync contacts and leads from HubSpot to your CRM board.",
+      "integrationName": "hubspot-leads-integration"
+    },
+    {
+      "name": "Marketo",
+      "icon": "/images/integrations/marketo.svg",
+      "description": "Pull marketing qualified leads from Marketo to your CRM workflow.",
+      "integrationName": "marketo-leads-integration"
+    }
+  ]
+} 
