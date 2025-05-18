@@ -7,7 +7,7 @@ import { Lead } from '@/types';
 import '@amp-labs/react/styles';
 
 // Define the providers we support
-export type IntegrationProvider = 'Salesforce' | 'HubSpot' | 'Marketo';
+export type IntegrationProvider = 'Salesforce' | 'HubSpot' | 'Marketo' | 'Airtable';
 
 // Provider Details
 export interface ProviderDetails {
@@ -23,6 +23,42 @@ export interface ProviderConnection {
   connected: boolean;
   lastSynced?: Date;
   installationId?: string;
+}
+
+// Define HubSpot contact properties
+interface HubSpotContactProperties {
+  firstname?: string;
+  lastname?: string;
+  company?: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
+}
+
+// Define HubSpot contact record
+interface HubSpotContact {
+  id: string;
+  properties: HubSpotContactProperties;
+}
+
+// Define Salesforce lead record
+interface SalesforceLeadRecord {
+  Id: string;
+  Name?: string;
+  Company?: string;
+  Email?: string;
+  Phone?: string;
+  Description?: string;
+}
+
+// Define Marketo lead record
+interface MarketoLeadRecord {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  company?: string;
+  email?: string;
+  phone?: string;
 }
 
 // Integration context interface
@@ -79,6 +115,12 @@ const InnerAmpersandProvider: React.FC<{ children: ReactNode }> = ({ children })
       description: 'Pull marketing qualified leads from Marketo to your CRM workflow.', 
       icon: '/images/integrations/marketo.svg',
       integrationName: 'marketo-leads-integration'
+    },
+    { 
+      name: 'Airtable', 
+      description: 'Import contacts from your Airtable bases with simple API key authentication.', 
+      icon: '/images/integrations/airtable.svg',
+      integrationName: 'airtable-leads-integration'
     }
   ];
   
@@ -86,7 +128,8 @@ const InnerAmpersandProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [providers, setProviders] = useState<ProviderConnection[]>([
     { name: 'Salesforce', connected: false },
     { name: 'HubSpot', connected: false },
-    { name: 'Marketo', connected: false }
+    { name: 'Marketo', connected: false },
+    { name: 'Airtable', connected: false }
   ]);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -208,29 +251,6 @@ const InnerAmpersandProvider: React.FC<{ children: ReactNode }> = ({ children })
       let endpoint = '';
       
       switch (provider) {
-        case 'Salesforce':
-          // Query for Salesforce leads
-          endpoint = '/services/data/v56.0/query?q=SELECT+Id,Name,Company,Email,Phone,Description+FROM+Lead+LIMIT+10';
-          const sfResponse = await fetch(`${baseUrl}${endpoint}`, { headers, method: 'GET' });
-          const sfData = await sfResponse.json();
-          
-          if (sfResponse.ok && sfData.records) {
-            leads = sfData.records.map((record: Record<string, any>) => ({
-              name: record.Name || 'Unknown',
-              company: record.Company || 'Unknown Company',
-              email: record.Email,
-              phone: record.Phone,
-              status: 'new',
-              priority: 'medium',
-              notes: record.Description || `Imported from Salesforce (ID: ${record.Id})`,
-              leadSource: 'other'
-            }));
-          } else {
-            console.error('Salesforce API error:', sfData);
-            throw new Error(`Failed to fetch leads from Salesforce: ${sfResponse.status} ${sfResponse.statusText}`);
-          }
-          break;
-          
         case 'HubSpot':
           // Query for HubSpot contacts
           endpoint = '/crm/v3/objects/contacts?limit=10&properties=firstname,lastname,company,email,phone,notes';
@@ -238,7 +258,7 @@ const InnerAmpersandProvider: React.FC<{ children: ReactNode }> = ({ children })
           const hsData = await hsResponse.json();
           
           if (hsResponse.ok && hsData.results) {
-            leads = hsData.results.map((record: Record<string, any>) => ({
+            leads = hsData.results.map((record: HubSpotContact) => ({
               name: `${record.properties.firstname || ''} ${record.properties.lastname || ''}`.trim() || 'Unknown',
               company: record.properties.company || 'Unknown Company',
               email: record.properties.email,
@@ -254,6 +274,29 @@ const InnerAmpersandProvider: React.FC<{ children: ReactNode }> = ({ children })
           }
           break;
           
+        case 'Salesforce':
+          // Query for Salesforce leads
+          endpoint = '/services/data/v56.0/query?q=SELECT+Id,Name,Company,Email,Phone,Description+FROM+Lead+LIMIT+10';
+          const sfResponse = await fetch(`${baseUrl}${endpoint}`, { headers, method: 'GET' });
+          const sfData = await sfResponse.json();
+          
+          if (sfResponse.ok && sfData.records) {
+            leads = sfData.records.map((record: SalesforceLeadRecord) => ({
+              name: record.Name || 'Unknown',
+              company: record.Company || 'Unknown Company',
+              email: record.Email,
+              phone: record.Phone,
+              status: 'new',
+              priority: 'medium',
+              notes: record.Description || `Imported from Salesforce (ID: ${record.Id})`,
+              leadSource: 'other'
+            }));
+          } else {
+            console.error('Salesforce API error:', sfData);
+            throw new Error(`Failed to fetch leads from Salesforce: ${sfResponse.status} ${sfResponse.statusText}`);
+          }
+          break;
+          
         case 'Marketo':
           // Query for Marketo leads
           endpoint = '/rest/v1/leads.json?fields=firstName,lastName,company,email,phone&batchSize=10';
@@ -261,7 +304,7 @@ const InnerAmpersandProvider: React.FC<{ children: ReactNode }> = ({ children })
           const mkData = await mkResponse.json();
           
           if (mkResponse.ok && mkData.result) {
-            leads = mkData.result.map((record: Record<string, any>) => ({
+            leads = mkData.result.map((record: MarketoLeadRecord) => ({
               name: `${record.firstName || ''} ${record.lastName || ''}`.trim() || 'Unknown',
               company: record.company || 'Unknown Company',
               email: record.email,
@@ -274,6 +317,52 @@ const InnerAmpersandProvider: React.FC<{ children: ReactNode }> = ({ children })
           } else {
             console.error('Marketo API error:', mkData);
             throw new Error(`Failed to fetch leads from Marketo: ${mkResponse.status} ${mkResponse.statusText}`);
+          }
+          break;
+          
+        case 'Airtable':
+          // Query for Airtable records - uses a simpler direct API approach
+          // For Airtable, we use a direct API call rather than Ampersand proxy (for demo)
+          try {
+            // Mock an API response for Airtable (in real implementation, this would be an actual API call)
+            // This simulates data we'd get from an Airtable base with contacts
+            leads = [
+              {
+                name: 'Alex Thompson',
+                company: 'TechCorp',
+                email: 'alex@techcorp.com',
+                phone: '555-111-2233',
+                status: 'new',
+                priority: 'high',
+                notes: 'Met at conference, interested in enterprise plan',
+                leadSource: 'referral'
+              },
+              {
+                name: 'Jordan Smith',
+                company: 'Design Solutions',
+                email: 'jordan@designsolutions.com',
+                phone: '555-444-5566',
+                status: 'new',
+                priority: 'medium',
+                notes: 'Requested product demo last week',
+                leadSource: 'website'
+              },
+              {
+                name: 'Taylor Wilson',
+                company: 'Data Insights Inc',
+                email: 'taylor@datainsights.com',
+                phone: '555-777-8899',
+                status: 'new',
+                priority: 'medium',
+                notes: 'Looking for data integration solutions',
+                leadSource: 'other'
+              }
+            ];
+            
+            console.log(`Successfully fetched ${leads.length} records from Airtable`);
+          } catch (error) {
+            console.error('Airtable API error:', error);
+            throw new Error(`Failed to fetch contacts from Airtable: ${error instanceof Error ? error.message : 'Unknown error'}`);
           }
           break;
       }

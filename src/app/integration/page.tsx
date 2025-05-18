@@ -13,6 +13,14 @@ import "@amp-labs/react/styles";
 import "@/styles/ampersand-custom.css";
 
 export default function IntegrationPage() {
+  return (
+    <AmpersandProvider>
+      <IntegrationPageContent />
+    </AmpersandProvider>
+  );
+}
+
+function IntegrationPageContent() {
   const {
     providers,
     providerDetails,
@@ -23,6 +31,12 @@ export default function IntegrationPage() {
     syncProviderData,
     hasConnectedProviders,
   } = useAmpersand();
+
+  // Debug providers
+  useEffect(() => {
+    console.log("Available providers:", providers);
+    console.log("Provider details:", providerDetails);
+  }, [providers, providerDetails]);
 
   const [selectedProvider, setSelectedProvider] =
     useState<IntegrationProvider | null>(null);
@@ -260,7 +274,6 @@ export default function IntegrationPage() {
               </svg>
             </button>
             <div className="w-full py-5 h-full">
-              <AmpersandProvider>
                 <InstallIntegration
                   integration={selectedProviderDetails.integrationName}
                   consumerRef="user-123"
@@ -271,7 +284,6 @@ export default function IntegrationPage() {
                   onUpdateSuccess={handleInstallSuccess}
                   onUninstallSuccess={handleUninstallSuccess}
                 />
-              </AmpersandProvider>
             </div>
           </motion.div>
         </motion.div>

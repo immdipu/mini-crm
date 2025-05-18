@@ -18,3 +18,9 @@ integrations:
     provider: marketo
     proxy:
       enabled: true 
+
+  - name: airtable-leads-integration
+    displayName: Airtable Leads
+    provider: airtable
+    proxy:
+      enabled: true 
