@@ -134,20 +134,25 @@ export const IntegrationCard = ({
             <motion.div
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
+              title="Sync data from this provider"
+              className="relative group"
             >
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0 mr-2"
+                className="h-8 w-8 p-0 mr-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                 onClick={onSync}
                 disabled={isSyncing}
               >
                 {isSyncing ? (
-                  <Loader2 size={14} className="animate-spin" />
+                  <Loader2 size={14} className="animate-spin text-blue-600" />
                 ) : (
                   <RefreshCw size={14} className="text-blue-600" />
                 )}
               </Button>
+              <div className="absolute -top-8 left-50 transform -translate-x-1/4 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                Sync data
+              </div>
             </motion.div>
             <motion.div
               className="flex-grow"

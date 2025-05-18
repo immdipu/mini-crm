@@ -180,41 +180,141 @@ const InnerAmpersandProvider: React.FC<{ children: ReactNode }> = ({ children })
         throw new Error(`Provider ${provider} configuration not found`);
       }
 
-      // In a real implementation, this would call the Ampersand proxy API
-      // For this demo, we'll generate mock data
-      const mockLeads: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>[] = [
-        {
-          name: 'John Smith',
-          company: 'Acme Corp',
-          email: 'john@acmecorp.com',
-          phone: '555-123-4567',
-          status: 'new',
-          priority: 'medium',
-          notes: `Imported from ${provider}`,
-          leadSource: 'other'
-        },
-        {
-          name: 'Jane Doe',
-          company: 'Globex Inc',
-          email: 'jane@globex.com',
-          phone: '555-987-6543',
-          status: 'new',
-          priority: 'high',
-          notes: `Imported from ${provider}`,
-          leadSource: 'other'
-        }
-      ];
+      // Now we'll use Ampersand's proxy API to get real data
+      let leads: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>[] = [];
+      
+      const projectId = process.env.NEXT_PUBLIC_AMPERSAND_PROJECT_ID;
+      const apiKey = process.env.NEXT_PUBLIC_AMPERSAND_API_KEY;
+      
+      if (!projectId || !apiKey) {
+        throw new Error('Ampersand API credentials are not configured');
+      }
+      
+      // Set up headers for Ampersand proxy API
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'x-amp-proxy-version': '1',
+        'x-amp-project-id': projectId,
+        'x-api-key': apiKey,
+      };
+      
+      // Only add installation ID if it exists
+      if (providerInfo.installationId) {
+        headers['x-amp-installation-id'] = providerInfo.installationId;
+      }
+      
+      // Fetch data from the provider using appropriate API endpoints
+      const baseUrl = 'https://proxy.withampersand.com';
+      let endpoint = '';
+      
+      switch (provider) {
+        case 'Salesforce':
+          // Query for Salesforce leads
+          endpoint = '/services/data/v56.0/query?q=SELECT+Id,Name,Company,Email,Phone,Description+FROM+Lead+LIMIT+10';
+          const sfResponse = await fetch(`${baseUrl}${endpoint}`, { headers, method: 'GET' });
+          const sfData = await sfResponse.json();
+          
+          if (sfResponse.ok && sfData.records) {
+            leads = sfData.records.map((record: Record<string, any>) => ({
+              name: record.Name || 'Unknown',
+              company: record.Company || 'Unknown Company',
+              email: record.Email,
+              phone: record.Phone,
+              status: 'new',
+              priority: 'medium',
+              notes: record.Description || `Imported from Salesforce (ID: ${record.Id})`,
+              leadSource: 'other'
+            }));
+          } else {
+            console.error('Salesforce API error:', sfData);
+            throw new Error(`Failed to fetch leads from Salesforce: ${sfResponse.status} ${sfResponse.statusText}`);
+          }
+          break;
+          
+        case 'HubSpot':
+          // Query for HubSpot contacts
+          endpoint = '/crm/v3/objects/contacts?limit=10&properties=firstname,lastname,company,email,phone,notes';
+          const hsResponse = await fetch(`${baseUrl}${endpoint}`, { headers, method: 'GET' });
+          const hsData = await hsResponse.json();
+          
+          if (hsResponse.ok && hsData.results) {
+            leads = hsData.results.map((record: Record<string, any>) => ({
+              name: `${record.properties.firstname || ''} ${record.properties.lastname || ''}`.trim() || 'Unknown',
+              company: record.properties.company || 'Unknown Company',
+              email: record.properties.email,
+              phone: record.properties.phone,
+              status: 'new',
+              priority: 'medium',
+              notes: record.properties.notes || `Imported from HubSpot (ID: ${record.id})`,
+              leadSource: 'other'
+            }));
+          } else {
+            console.error('HubSpot API error:', hsData);
+            throw new Error(`Failed to fetch contacts from HubSpot: ${hsResponse.status} ${hsResponse.statusText}`);
+          }
+          break;
+          
+        case 'Marketo':
+          // Query for Marketo leads
+          endpoint = '/rest/v1/leads.json?fields=firstName,lastName,company,email,phone&batchSize=10';
+          const mkResponse = await fetch(`${baseUrl}${endpoint}`, { headers, method: 'GET' });
+          const mkData = await mkResponse.json();
+          
+          if (mkResponse.ok && mkData.result) {
+            leads = mkData.result.map((record: Record<string, any>) => ({
+              name: `${record.firstName || ''} ${record.lastName || ''}`.trim() || 'Unknown',
+              company: record.company || 'Unknown Company',
+              email: record.email,
+              phone: record.phone,
+              status: 'new',
+              priority: 'medium',
+              notes: `Imported from Marketo (ID: ${record.id})`,
+              leadSource: 'other'
+            }));
+          } else {
+            console.error('Marketo API error:', mkData);
+            throw new Error(`Failed to fetch leads from Marketo: ${mkResponse.status} ${mkResponse.statusText}`);
+          }
+          break;
+      }
+      
+      // If we couldn't fetch any real data, provide fallback mock data for demo
+      if (leads.length === 0) {
+        console.warn(`Could not fetch real data from ${provider}, using fallback mock data`);
+        leads = [
+          {
+            name: 'John Smith',
+            company: 'Acme Corp',
+            email: 'john@acmecorp.com',
+            phone: '555-123-4567',
+            status: 'new',
+            priority: 'medium',
+            notes: `Imported from ${provider} (Mock Data)`,
+            leadSource: 'other'
+          },
+          {
+            name: 'Jane Doe',
+            company: 'Globex Inc',
+            email: 'jane@globex.com',
+            phone: '555-987-6543',
+            status: 'new',
+            priority: 'high',
+            notes: `Imported from ${provider} (Mock Data)`,
+            leadSource: 'other'
+          }
+        ];
+      }
 
       // Add the leads to the board
       const addedLeads: Lead[] = [];
-      for (const lead of mockLeads) {
+      for (const lead of leads) {
         // Call addLead for each lead
         addLead(lead);
         
         // Since we can't get the actual lead object, create a mock
         const mockAddedLead: Lead = {
           ...lead,
-          id: `mock-${Math.random().toString(36).substr(2, 9)}`,
+          id: `import-${Math.random().toString(36).substr(2, 9)}`,
           createdAt: Date.now(),
           updatedAt: Date.now()
         };
@@ -233,7 +333,13 @@ const InnerAmpersandProvider: React.FC<{ children: ReactNode }> = ({ children })
       return addedLeads;
     } catch (error) {
       console.error(`Failed to sync data from ${provider}:`, error);
-      return [];
+      
+      // Provide more detailed error message based on the error type
+      if (error instanceof Error) {
+        throw new Error(`Sync failed: ${error.message}`);
+      }
+      
+      throw new Error(`Failed to sync data from ${provider}`);
     } finally {
       setIsImporting(false);
     }
@@ -257,7 +363,7 @@ const InnerAmpersandProvider: React.FC<{ children: ReactNode }> = ({ children })
   return <AmpersandContext.Provider value={value}>{children}</AmpersandContext.Provider>;
 };
 
-// Hook for using the context
+// Hook for using the AmpersandContext
 export const useAmpersand = () => {
   const context = useContext(AmpersandContext);
   if (context === undefined) {
