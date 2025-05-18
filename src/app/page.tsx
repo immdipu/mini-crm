@@ -79,8 +79,7 @@ export default function LandingPage() {
                 <div className="text-white font-bold text-xl">$85,200</div>
               </div>
             </motion.div>
-            
-            {/* Card 3 - hidden on small screens */}
+          
             <motion.div 
               initial={{ x: 20, y: 20, rotate: 5 }}
               animate={{ x: 60, y: 40, rotate: 8 }}
@@ -103,8 +102,6 @@ export default function LandingPage() {
               </div>
             </motion.div>
           </div>
-          
-          {/* Call to action - adjust spacing for mobile */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -113,9 +110,9 @@ export default function LandingPage() {
           >
             <Link href="/board">
               <motion.button 
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium text-lg py-4 px-12 rounded-md shadow-md"
+                className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-medium text-base py-3 px-8 rounded-full shadow-md border-2 border-indigo-400/30"
               >
                 Go to Dashboard →
               </motion.button>
