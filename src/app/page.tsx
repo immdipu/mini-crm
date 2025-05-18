@@ -6,22 +6,22 @@ import { motion } from 'framer-motion';
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 flex flex-col">
-      <main className="flex-1 flex flex-col items-center justify-center px-4">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
         <motion.div 
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto text-center"
+          className="max-w-5xl mx-auto text-center"
         >
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            <span className="text-blue-600">Sales</span> Pipeline Manager
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 tracking-tight leading-tight">
+            <span className="text-blue-600 block sm:inline">Sales</span> Pipeline Manager
           </h1>
           
-          <h2 className="text-2xl font-medium text-gray-700 mb-8">
+          <h2 className="text-2xl md:text-3xl font-medium text-gray-700 mb-8 max-w-3xl mx-auto">
             Intuitive CRM that brings customers into every decision
           </h2>
           
-          <p className="text-gray-600 mb-10 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
             Manage your leads, track your sales pipeline, and close more deals with our intuitive CRM board.
             Our lightweight solution helps you stay organized without the complexity.
           </p>
@@ -33,14 +33,12 @@ export default function LandingPage() {
           transition={{ delay: 0.3, duration: 0.8 }}
           className="relative w-full max-w-5xl mx-auto mt-8"
         >
-          {/* Decorative cards */}
           <div className="relative flex justify-center">
-            {/* Card 1 */}
             <motion.div 
               initial={{ x: -20, y: 20, rotate: -5 }}
               animate={{ x: -60, y: 30, rotate: -8 }}
               transition={{ delay: 0.4, duration: 1.2, type: "spring" }}
-              className="absolute w-80 h-52 bg-white rounded-xl shadow-lg p-5 transform -rotate-6 border border-gray-200 z-10"
+              className="absolute w-72 sm:w-80 h-48 sm:h-52 bg-white rounded-xl shadow-lg p-5 transform -rotate-6 border border-gray-200 z-10 hidden sm:block"
             >
               <div className="h-5 w-28 bg-blue-100 rounded mb-3"></div>
               <div className="h-3 w-48 bg-gray-100 rounded mb-2"></div>
@@ -58,7 +56,7 @@ export default function LandingPage() {
               </div>
             </motion.div>
             
-            {/* Card 2 */}
+            {/* Card 2 - main card */}
             <motion.div 
               initial={{ scale: 1 }}
               animate={{ y: -5 }}
@@ -67,7 +65,7 @@ export default function LandingPage() {
                 repeatType: "reverse", 
                 duration: 1.8
               }}
-              className="w-80 h-52 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-xl p-5 z-30 text-left"
+              className="w-72 sm:w-80 h-48 sm:h-52 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-xl p-5 z-30 text-left"
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="h-6 w-32 bg-white/20 rounded"></div>
@@ -82,12 +80,12 @@ export default function LandingPage() {
               </div>
             </motion.div>
             
-            {/* Card 3 */}
+            {/* Card 3 - hidden on small screens */}
             <motion.div 
               initial={{ x: 20, y: 20, rotate: 5 }}
               animate={{ x: 60, y: 40, rotate: 8 }}
               transition={{ delay: 0.4, duration: 1.2, type: "spring" }}
-              className="absolute w-80 h-52 bg-white rounded-xl shadow-lg p-5 transform rotate-6 border border-gray-200 z-20"
+              className="absolute w-72 sm:w-80 h-48 sm:h-52 bg-white rounded-xl shadow-lg p-5 transform rotate-6 border border-gray-200 z-20 hidden sm:block"
             >
               <div className="h-5 w-28 bg-purple-100 rounded mb-3"></div>
               <div className="h-3 w-48 bg-gray-100 rounded mb-2"></div>
@@ -106,18 +104,18 @@ export default function LandingPage() {
             </motion.div>
           </div>
           
-          {/* Call to action */}
+          {/* Call to action - adjust spacing for mobile */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, duration: 0.6 }}
-            className="mt-36 text-center"
+            className="mt-24 sm:mt-36 text-center"
           >
             <Link href="/board">
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium py-3 px-10 rounded-md shadow-md"
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium text-lg py-4 px-12 rounded-md shadow-md"
               >
                 Go to Dashboard →
               </motion.button>
@@ -126,7 +124,7 @@ export default function LandingPage() {
         </motion.div>
       </main>
       
-      <footer className="py-6 text-center text-gray-500 text-sm">
+      <footer className="py-6 text-center text-gray-500 text-sm mt-10">
         <p>© 2023 Mini CRM. All rights reserved.</p>
       </footer>
     </div>
