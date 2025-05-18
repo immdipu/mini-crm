@@ -12,11 +12,25 @@ import {
   useSalesforceIntegration, 
   useHubSpotIntegration, 
   useAirtableIntegration,
-  useMarketoIntegration
+  useMarketoIntegration,
+  UseIntegrationBaseReturn
 } from "@/hooks/providers";
 import { InstallIntegration } from "@amp-labs/react";
 import "@amp-labs/react/styles";
 import "@/styles/ampersand-custom.css";
+import { IntegrationFieldMappingModal } from '@/components/integration/IntegrationFieldMappingModal';
+import { FieldMapping } from "@/types";
+
+// Define a custom interface that extends the base return type with mapping functions
+interface MappingEnabledIntegration extends UseIntegrationBaseReturn {
+  fetchSourceFields: () => Promise<string[]>;
+  fetchSampleData: () => Promise<Record<string, unknown>[]>;
+  importWithMapping: (mappings: FieldMapping[]) => Promise<unknown[]>;
+  sourceFields: string[];
+  sampleData: Record<string, unknown>[];
+  isLoadingFields: boolean;
+  rawRecords: unknown[];
+}
 
 export default function IntegrationPage() {
   return (
@@ -89,6 +103,13 @@ function IntegrationPageContent() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [installationId, setInstallationId] = useState<string | null>(null);
 
+  // Add new state for field mapping modal
+  const [showFieldMappingModal, setShowFieldMappingModal] = useState(false);
+  const [currentProvider, setCurrentProvider] = useState<IntegrationProvider | null>(null);
+  const [providerSourceFields, setProviderSourceFields] = useState<string[]>([]);
+  const [isLoadingFields, setIsLoadingFields] = useState(false);
+  const [activeIntegrationHook, setActiveIntegrationHook] = useState<MappingEnabledIntegration | null>(null);
+
   // Helper to display temporary success messages
   const showSuccessMessage = (message: string) => {
     setSuccessMessage(message);
@@ -96,16 +117,16 @@ function IntegrationPageContent() {
   };
 
   // Helper to get the proper integration hook for a provider
-  const getIntegrationHook = (provider: IntegrationProvider) => {
+  const getIntegrationHook = (provider: IntegrationProvider): MappingEnabledIntegration | null => {
     switch (provider) {
       case 'Salesforce':
-        return salesforceIntegration;
+        return salesforceIntegration as MappingEnabledIntegration;
       case 'HubSpot':
-        return hubspotIntegration;
+        return hubspotIntegration as MappingEnabledIntegration;
       case 'Airtable':
-        return airtableIntegration;
+        return airtableIntegration as MappingEnabledIntegration;
       case 'Marketo':
-        return marketoIntegration;
+        return marketoIntegration as MappingEnabledIntegration;
       default:
         return null;
     }
@@ -190,6 +211,7 @@ function IntegrationPageContent() {
 
   const handleSyncClick = async (provider: IntegrationProvider) => {
     setSyncingProvider(provider);
+    setCurrentProvider(provider);
     const integrationHook = getIntegrationHook(provider);
     
     if (!integrationHook) {
@@ -197,24 +219,60 @@ function IntegrationPageContent() {
       setSyncingProvider(null);
       return;
     }
-
+    
     try {
-      const importedLeads = await integrationHook.syncData();
+      setIsLoadingFields(true);
+      setActiveIntegrationHook(integrationHook);
+      
+      // Instead of syncing directly, fetch the source fields first
+      const fields = await integrationHook.fetchSourceFields();
+      setProviderSourceFields(fields);
+      
+      // Show the field mapping modal
+      setShowFieldMappingModal(true);
+    } catch (err) {
+      console.error("Field fetch error:", err);
+      alert(
+        `Failed to fetch fields from ${provider}: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setIsLoadingFields(false);
+      setSyncingProvider(null);
+    }
+  };
+  
+  // Handle completing the field mapping
+  const handleFieldMappingComplete = async (mappings: FieldMapping[]) => {
+    if (!currentProvider || !activeIntegrationHook) return;
+    
+    setSyncingProvider(currentProvider);
+    
+    try {
+      // Import with the provided mappings
+      const importedLeads = await activeIntegrationHook.importWithMapping(mappings);
       
       // Update the last synced time
       setConnectionInfo(prev => ({
         ...prev,
-        [provider]: {
-          ...prev[provider],
+        [currentProvider]: {
+          ...prev[currentProvider],
           lastSynced: new Date()
         }
       }));
       
-      showSuccessMessage(`Successfully imported ${importedLeads.length} leads from ${provider}.`);
+      showSuccessMessage(`Successfully imported ${importedLeads.length} leads from ${currentProvider}.`);
+      
+      // Reset state
+      setShowFieldMappingModal(false);
+      setCurrentProvider(null);
+      setProviderSourceFields([]);
+      setActiveIntegrationHook(null);
     } catch (err) {
-      console.error("Sync error:", err);
+      console.error("Import error:", err);
       alert(
-        `Failed to sync leads from ${provider}: ${
+        `Failed to import leads from ${currentProvider}: ${
           err instanceof Error ? err.message : "Unknown error"
         }`
       );
@@ -403,6 +461,23 @@ function IntegrationPageContent() {
             </div>
           </motion.div>
         </motion.div>
+      )}
+
+      {/* Field Mapping Modal */}
+      {showFieldMappingModal && currentProvider && (
+        <IntegrationFieldMappingModal
+          isOpen={showFieldMappingModal}
+          onClose={() => {
+            setShowFieldMappingModal(false);
+            setCurrentProvider(null);
+            setProviderSourceFields([]);
+            setActiveIntegrationHook(null);
+          }}
+          onComplete={handleFieldMappingComplete}
+          sourceFields={providerSourceFields}
+          providerName={currentProvider}
+          isLoadingFields={isLoadingFields}
+        />
       )}
     </div>
   );

@@ -1,14 +1,8 @@
 import { useBoard } from '@/context/BoardContext';
-import { Lead, Status, Priority, LeadSource } from '@/types';
+import { Lead, Status, Priority, LeadSource, FieldMapping } from '@/types';
 import { callAmpersandApi } from '@/utils/ampersandApi';
 import { useIntegrationBase, UseIntegrationBaseReturn } from './useIntegrationBase';
-
-// Define Airtable base metadata
-interface AirtableBase {
-  id: string;
-  name: string;
-  permissionLevel: string;
-}
+import { useState } from 'react';
 
 // Define Airtable table metadata
 interface AirtableTable {
@@ -39,19 +33,37 @@ interface AirtableRecordsResponse {
   offset?: string;
 }
 
-export const useAirtableIntegration = (): UseIntegrationBaseReturn => {
+// Enhanced return type with mapping functions
+interface UseAirtableIntegrationReturn extends UseIntegrationBaseReturn {
+  fetchSourceFields: () => Promise<string[]>;
+  fetchSampleData: () => Promise<Record<string, unknown>[]>;
+  importWithMapping: (mappings: FieldMapping[]) => Promise<Lead[]>;
+  sourceFields: string[];
+  sampleData: Record<string, unknown>[];
+  isLoadingFields: boolean;
+  rawRecords: AirtableRecord[];
+}
+
+export const useAirtableIntegration = (): UseAirtableIntegrationReturn => {
   const { addLead } = useBoard();
   const baseIntegration = useIntegrationBase({ provider: 'Airtable' });
+  
+  // Add state for field mapping flow
+  const [sourceFields, setSourceFields] = useState<string[]>([]);
+  const [sampleData, setSampleData] = useState<Record<string, unknown>[]>([]);
+  const [rawRecords, setRawRecords] = useState<AirtableRecord[]>([]);
+  const [isLoadingFields, setIsLoadingFields] = useState(false);
 
-  // Override the sync method with Airtable-specific logic
-  const syncData = async (): Promise<Lead[]> => {
-    const connectionInfo = baseIntegration.getConnectionInfo();
-    
-    if (!connectionInfo || !connectionInfo.connected) {
-      throw new Error('Airtable is not connected');
-    }
-
+  // Fetch available fields from Airtable table
+  const fetchSourceFields = async (): Promise<string[]> => {
+    setIsLoadingFields(true);
     try {
+      const connectionInfo = baseIntegration.getConnectionInfo();
+    
+      if (!connectionInfo || !connectionInfo.connected) {
+        throw new Error('Airtable is not connected');
+      }
+
       // Get stored configuration or use default
       const config = connectionInfo.configDetails as AirtableConfig || {};
       
@@ -111,67 +123,124 @@ export const useAirtableIntegration = (): UseIntegrationBaseReturn => {
       }
 
       console.log(`Found ${response.records.length} records in the table`);
-
-      // Map Airtable records to our application's Lead type
+      
+      // Store raw records for later use with mapping
+      setRawRecords(response.records);
+      
+      // Extract all unique field names from records
+      const allFields = new Set<string>();
+      response.records.forEach(record => {
+        Object.keys(record.fields).forEach(key => allFields.add(key));
+      });
+      
+      const fieldNames = Array.from(allFields);
+      setSourceFields(fieldNames);
+      
+      // Create sample data for preview (up to 3 records)
+      const samples = response.records.slice(0, 3).map(record => {
+        return { ...record.fields, id: record.id };
+      });
+      
+      setSampleData(samples);
+      
+      return fieldNames;
+    } catch (error) {
+      console.error('Failed to fetch Airtable fields:', error);
+      throw error;
+    } finally {
+      setIsLoadingFields(false);
+    }
+  };
+  
+  // Fetch sample data for preview
+  const fetchSampleData = async (): Promise<Record<string, unknown>[]> => {
+    try {
+      // If we already have sample data, return it
+      if (sampleData.length > 0) {
+        return sampleData;
+      }
+      
+      // Otherwise, fetch the source fields which will populate sample data
+      await fetchSourceFields();
+      return sampleData;
+    } catch (error) {
+      console.error('Failed to fetch sample data:', error);
+      throw error;
+    }
+  };
+  
+  // Import data with user-defined field mappings
+  const importWithMapping = async (mappings: FieldMapping[]): Promise<Lead[]> => {
+    try {
+      if (rawRecords.length === 0) {
+        // If we don't have records yet, fetch them
+        await fetchSourceFields();
+      }
+      
+      // Map Airtable records to leads based on user-defined mappings
       const importedLeads: Lead[] = [];
       
-      for (const record of response.records) {
+      for (const record of rawRecords) {
         const fields = record.fields;
-        
-        // Try to find appropriate fields in the record
-        // This is a simple heuristic - in a real app, you'd do field mapping
-        const nameField = findField(fields, ['name', 'full name', 'contact name', 'lead name']);
-        const companyField = findField(fields, ['company', 'organization', 'business']);
-        const emailField = findField(fields, ['email', 'email address']);
-        const phoneField = findField(fields, ['phone', 'telephone', 'cell']);
-        const notesField = findField(fields, ['notes', 'description', 'comments']);
-        
-        const lead = {
-          name: nameField || 'Unknown',
-          company: companyField || '',
-          email: emailField || '',
-          phone: phoneField || '',
-          notes: notesField || '',
-          priority: 'medium' as Priority,
+        const lead: Partial<Lead> = {
           status: 'new' as Status,
+          priority: 'medium' as Priority,
           leadSource: 'other' as LeadSource,
         };
         
-        // Add the lead to the board and store the result (just for count purposes)
-        addLead(lead);
-        importedLeads.push(lead as Lead); // Type assertion for counting purposes
+        // Apply mappings
+        mappings.forEach(mapping => {
+          if (mapping.sourceField && mapping.targetField && mapping.sourceField !== '_empty' && mapping.targetField !== '_empty') {
+            const fieldValue = fields[mapping.sourceField];
+            
+            // Convert field value to string if it's a simple value
+            if (fieldValue !== undefined && fieldValue !== null) {
+              if (typeof fieldValue === 'string' || typeof fieldValue === 'number' || typeof fieldValue === 'boolean') {
+                // Use a type assertion that's more specific to the Lead field types
+                (lead as Record<string, string>)[mapping.targetField] = String(fieldValue);
+              }
+            }
+          }
+        });
+        
+        // Add the lead to the board
+        addLead(lead as Lead);
+        importedLeads.push(lead as Lead);
       }
-
+      
       // Update last synced info
-      const storageKey = 'integration_airtable';
-      localStorage.setItem(storageKey, JSON.stringify({
-        ...connectionInfo,
-        lastSynced: new Date().toISOString()
-      }));
-
+      const connectionInfo = baseIntegration.getConnectionInfo();
+      if (connectionInfo) {
+        const storageKey = 'integration_airtable';
+        localStorage.setItem(storageKey, JSON.stringify({
+          ...connectionInfo,
+          lastSynced: new Date().toISOString()
+        }));
+      }
+      
       return importedLeads;
     } catch (error) {
-      console.error('Failed to sync Airtable records:', error);
+      console.error('Failed to import Airtable records with mapping:', error);
       throw error;
     }
+  };
+
+  // Override the sync method to use our new mapping flow
+  const syncData = async (): Promise<Lead[]> => {
+    // This function now just returns an empty array since we'll use importWithMapping instead
+    // We could throw an error here to prevent direct syncing without mapping
+    throw new Error('Direct sync is not supported. Please use importWithMapping with field mappings.');
   };
 
   return {
     ...baseIntegration,
     syncData,
+    fetchSourceFields,
+    fetchSampleData,
+    importWithMapping,
+    sourceFields,
+    sampleData,
+    isLoadingFields,
+    rawRecords
   };
-};
-
-// Helper function to find a field in the record based on common field names
-function findField(fields: Record<string, AirtableFieldValue>, possibleNames: string[]): string {
-  for (const key of Object.keys(fields)) {
-    if (possibleNames.some(name => key.toLowerCase().includes(name))) {
-      const value = fields[key];
-      // Convert field value to string if it's a simple value
-      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-        return String(value);
-      }
-    }
-  }
-  return '';
-} 
+}; 
